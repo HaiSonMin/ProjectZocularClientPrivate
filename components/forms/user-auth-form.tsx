@@ -10,38 +10,54 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { LoginSchema } from '@/lib/schemas';
+import { toast } from '../ui/use-toast';
+import { useRouter } from 'next/navigation';
+import { login } from '@/app/apis/auth';
 
 type UserFormValue = z.infer<typeof LoginSchema>;
 
 export default function UserAuthForm() {
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl');
   const [loading, startTransition] = useTransition();
-  const [error, setError] = useState<string | undefined>('');
-  const urlError =
-    searchParams?.get('error') === 'OAuthAccountNotLinked'
-      ? 'You are currently using an email from a different provider!'
-      : '';
+  const router = useRouter();
+
   const form = useForm<UserFormValue>({
     resolver: zodResolver(LoginSchema)
   });
 
-  const onSubmit = async (values: UserFormValue) => {
+  async function onSubmit(values: UserFormValue) {
     startTransition(async () => {
-      setError('');
-      startTransition(async () => {
-        try {
-        } catch (err) {
-          setError('An error occurred!');
+      try {
+        const response = await login(values);
+
+        if (response?.statusCode === 200 && response?.metadata) {
+          router.replace('/dashboard');
+          toast({
+            title: 'success',
+            variant: 'destructive',
+            description: response?.message
+          });
+        } else {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+
+            description: response?.message
+          });
         }
-      });
+      } catch (error: any) {
+        toast({
+          title: 'error',
+          variant: 'destructive',
+
+          description: 'Có lỗi xảy ra, vui lòng thử lại'
+        });
+      }
     });
-  };
+  }
 
   return (
     <>

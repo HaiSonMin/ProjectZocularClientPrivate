@@ -21,21 +21,7 @@ export default function Page() {
     total_pages: 0,
     current_page: 1
   });
-  React.useEffect(() => {
-    const fetchAddresses = async () => {
-      try {
-        setLoading(true);
-        const { response } = await addressApi.getCompanyAddresses();
-        console.log('response', response);
-        setAddresses(response.addresses);
-        setPagination(response.pagination);
-        setLoading(false);
-      } catch (error) {
-        // Handle error appropriately
-      }
-    };
-    fetchAddresses();
-  }, []);
+
   return (
     <PageContainer>
       <div className="space-y-2">

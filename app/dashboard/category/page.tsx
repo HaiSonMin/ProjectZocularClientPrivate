@@ -20,20 +20,7 @@ export default function Page() {
     total_pages: 0,
     current_page: 1
   });
-  React.useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        const { response } = await categoryApi.getCategories();
-        setCategories(response.categories);
-        setPagination(response.pagination);
-        setLoading(false);
-      } catch (error) {
-        // Handle error appropriately
-      }
-    };
-    fetchCategories();
-  }, []);
+
   return (
     <PageContainer>
       <div className="space-y-2">

@@ -114,7 +114,6 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
     ? 'User updated successfully.'
     : 'User created successfully.';
   const action = initialData ? 'Save changes' : 'Create';
-  console.log('initialData', initialData);
   if (initialData) {
     initialData.birth_year = initialData.birth_year.toString();
   }

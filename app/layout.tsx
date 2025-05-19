@@ -1,12 +1,10 @@
-import Providers from '@/components/layout/providers';
 import { Toaster } from '@/components/ui/toaster';
-import '@uploadthing/react/styles.css';
 import type { Metadata } from 'next';
 import NextTopLoader from 'nextjs-toploader';
 import { Inter } from 'next/font/google';
-import { NextIntlClientProvider } from 'next-intl';
 import './globals.css';
-import { getLocale, getMessages } from 'next-intl/server';
+import { getMe } from './apis/auth';
+import { AuthInitializer } from '@/components/AuthInitializer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,19 +18,22 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
-  const messages = await getMessages();
+  const meResponse = await getMe();
+
   return (
-    <html lang={locale}>
+    <html>
       <body
         className={`${inter.className} overflow-hidden `}
         suppressHydrationWarning={true}
       >
-        <NextIntlClientProvider messages={messages}>
-          <NextTopLoader showSpinner={false} />
-          <Toaster />
-          {children}
-        </NextIntlClientProvider>
+        <NextTopLoader showSpinner={false} />
+        <Toaster />
+        <AuthInitializer
+          user={
+            meResponse?.statusCode === 200 ? meResponse?.metadata ?? null : null
+          }
+        />
+        {children}
       </body>
     </html>
   );
