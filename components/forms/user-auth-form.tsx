@@ -15,7 +15,6 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { LoginSchema } from '@/lib/schemas';
-import { login } from '@/services/actions/login';
 
 type UserFormValue = z.infer<typeof LoginSchema>;
 
@@ -37,16 +36,6 @@ export default function UserAuthForm() {
       setError('');
       startTransition(async () => {
         try {
-          const result = await login(values, callbackUrl);
-          if (result?.error) {
-            form.reset();
-            setError(result.error);
-            return;
-          }
-
-          if (result?.success) {
-            form.reset();
-          }
         } catch (err) {
           setError('An error occurred!');
         }
