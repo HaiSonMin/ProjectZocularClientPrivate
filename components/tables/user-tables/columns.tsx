@@ -1,19 +1,19 @@
 'use client';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
-import { User } from '@/types/user';
+import { User } from '@/interfaces/models';
 
 export const columns: ColumnDef<User>[] = [
   {
-    accessorKey: '_id',
+    accessorKey: 'id',
     header: 'USER ID'
   },
   {
-    accessorKey: 'first_name',
+    accessorKey: 'firstName',
     header: 'FIRST NAME'
   },
   {
-    accessorKey: 'last_name',
+    accessorKey: 'lastName',
     header: 'LAST NAME'
   },
   {
@@ -21,31 +21,17 @@ export const columns: ColumnDef<User>[] = [
     header: 'EMAIL'
   },
   {
-    accessorKey: 'mobile_phone',
-    header: 'MOBILE PHONE'
-  },
-  {
-    accessorKey: 'telephone',
-    header: 'TELEPHONE'
+    accessorKey: 'phone',
+    header: 'PHONE'
   },
   {
     accessorKey: 'role',
-    header: 'ROLE',
-    meta: {
-      filterVariant: 'select',
-      options: [
-        'CUSTOMER',
-        'PROFESSIONAL_USER',
-        'DISTRIBUTOR_USER',
-        'SALES_REP_USER',
-        'GROUP_USER',
-        'SUPER_ADMIN'
-      ]
-    }
+    header: 'ROLE'
   },
   {
-    accessorKey: 'status',
+    accessorKey: 'isBlocked',
     header: 'STATUS',
+    cell: ({ getValue }) => (getValue() === 1 ? 'inactive' : 'active'),
     meta: {
       filterVariant: 'select',
       options: ['active', 'inactive']

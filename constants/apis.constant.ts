@@ -10,8 +10,22 @@ export const CONST_APIS = {
     },
     COMMON: {
       AUTH: 'auth',
-      BLOGS: 'blogs'
-      // Em tự điền vào đây
+      BLOGS: 'blogs',
+      USERS: 'users',
+      BLOG_CATEGORIES: 'blog-categories',
+      ADDRESS: 'address',
+      PRODUCT_CATEGORIES: 'product-categories',
+      PRODUCT_REVIEW: 'product-review',
+      PRODUCTS: 'products',
+      INVENTORY: 'inventory',
+      DISCOUNTS: 'discounts',
+      CARTS: 'carts',
+      CARTS_ITEMS: 'carts-items',
+      CARTS_PAYMENT: 'carts-payment',
+      ORDER_ITEMS: 'order-items',
+      ORDER: 'order',
+      PAYMENT: 'payment',
+      SKIPPING: 'skipping'
     }
   }
 };
@@ -21,6 +35,7 @@ export const CONST_APIS_COMMON = {
   GET_BY_ID: 'get-by-id',
   GET_ONE_BY_FIELD: 'get-one-by-field',
   GET_MULTI_BY_FIELDS: 'get-multi-by-fields',
+  GET_MULTI: 'multi',
   UPDATE: 'update',
   DELETE_MULTI: 'delete-multi'
 };

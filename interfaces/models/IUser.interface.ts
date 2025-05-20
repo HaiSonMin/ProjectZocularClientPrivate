@@ -31,3 +31,15 @@ export interface User {
   updatedBy: string | null;
   version: number;
 }
+
+export interface CreateUser {
+  fullName: string;
+  email: string;
+  password: string;
+  phone: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  roles: string[];
+  rolesGroups: string[];
+  department: string;
+  avatar: string;
+}

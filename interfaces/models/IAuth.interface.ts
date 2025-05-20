@@ -1,21 +1,18 @@
-import { AutoInterfacesModels } from 'automation-lib';
-
-export interface IDataUser {
-  userId?: string;
-  userEmail?: string;
-  userRole?: string;
-  userName?: string;
-  userIsRootAdmin?: boolean;
+interface IDataUser {
+  userId: string;
+  userEmail: string;
+  userFirstName: string;
+  userLastName: string;
+  userAvatar: string;
+  userIsRootAdmin: boolean;
 }
 
 // Interface Models
 export interface IAuthLogin {
   email: string;
   password: string;
-  rememberMe?: boolean;
 }
-export interface IAuthResetPassword
-  extends AutoInterfacesModels.IAuthResetPassword {
+export interface IAuthResetPassword {
   email: string;
   password: string;
   confirmPassword: string;

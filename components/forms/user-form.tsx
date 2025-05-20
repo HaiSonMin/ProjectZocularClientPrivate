@@ -21,12 +21,13 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { startTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '../ui/use-toast';
 import { Gender, RoleUser, UserStatus } from '@/types/user';
 import Loading from '../ui/loading';
+import { create } from '@/app/apis/models/users.apis';
 
 const createFormSchema = z
   .object({
@@ -139,44 +140,35 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
     defaultValues
   });
 
-  const onSubmit = async (data: UserFormValues) => {
-    try {
-      setLoading(true);
-      if (initialData) {
-        await userApi.updateUser(initialData._id, data);
-      } else {
-        await userApi.createUser(data);
-      }
-      router.refresh();
-      router.push(`/dashboard/user`);
-      toast({
-        variant: 'default',
-        title: toastMessage,
-        description: toastMessage
-      });
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  async function onSubmit(data: UserFormValues) {
+    const payload = {
+      fullName: `${data.first_name} ${data.last_name}`,
+      email: data.email,
+      password: data.password,
+      phone: data.mobile_phone,
+      gender: data.gender,
+      roles: [data.role],
+      rolesGroups: [],
+      department: data.job_title ?? '',
+      avatar: ''
+    };
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = await create(payload);
+          console.log('response', response);
 
-  // const onDelete = async () => {
-  //   try {
-  //     setLoading(true);
-  //     //   await axios.delete(`/api/${params.storeId}/products/${params.productId}`);
-  //     router.refresh();
-  //     router.push(`/${params.storeId}/products`);
-  //   } catch (error: any) {
-  //   } finally {
-  //     setLoading(false);
-  //     setOpen(false);
-  //   }
-  // };
+          // You may want to handle the response here, e.g. show a toast or redirect
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'Có lỗi xảy ra, vui lòng thử lại'
+          });
+        }
+      })();
+    });
+  }
 
   return (
     <>

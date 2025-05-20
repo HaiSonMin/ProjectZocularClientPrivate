@@ -16,7 +16,7 @@ import * as z from 'zod';
 import { LoginSchema } from '@/lib/schemas';
 import { toast } from '../ui/use-toast';
 import { useRouter } from 'next/navigation';
-import { login } from '@/app/apis/auth';
+import { login } from '@/app/apis';
 
 type UserFormValue = z.infer<typeof LoginSchema>;
 
@@ -42,7 +42,7 @@ export default function UserAuthForm() {
           });
         } else {
           toast({
-            title: 'error',
+            title: 'warning',
             variant: 'destructive',
 
             description: response?.message
@@ -52,7 +52,6 @@ export default function UserAuthForm() {
         toast({
           title: 'error',
           variant: 'destructive',
-
           description: 'Có lỗi xảy ra, vui lòng thử lại'
         });
       }

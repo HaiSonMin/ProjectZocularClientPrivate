@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import NextTopLoader from 'nextjs-toploader';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { getMe } from './apis/auth';
 import { AuthInitializer } from '@/components/AuthInitializer';
+import { getMe } from './apis';
 
 const inter = Inter({ subsets: ['latin'] });
 

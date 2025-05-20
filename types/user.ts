@@ -1,22 +1,3 @@
-export type User = {
-  _id: string;
-  first_name: string;
-  last_name: string;
-  mobile_phone: string;
-  telephone: string;
-  birth_year: number;
-  gender: string;
-  email: string;
-  license_number: string;
-  license_state: string;
-  status: string;
-  verified: boolean;
-  roles: string;
-  zoc_code: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type GetUsersOptions = {
   search?: string;
   created_at?: {

@@ -13,15 +13,15 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useTranslations } from 'next-intl';
 
 export default function Page() {
-  const t = useTranslations('HomePage');
   return (
     <PageContainer scrollable={true}>
       <div className="space-y-2">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight">{t('title')}</h2>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Hi, Welcome back
+          </h2>
           <div className="hidden items-center space-x-2 md:flex">
             <CalendarDateRangePicker />
             <Button>Download</Button>
