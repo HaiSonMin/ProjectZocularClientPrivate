@@ -9,7 +9,6 @@ import { columns } from './columns';
 import Loading from '@/components/ui/loading';
 import React from 'react';
 import { Product } from '@/types/product';
-import productApi from '@/services/api/modules/product-api';
 interface ProductsClientProps {
   data: Product[];
   setData: (data: Product[]) => void;

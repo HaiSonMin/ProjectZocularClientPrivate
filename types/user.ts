@@ -19,22 +19,27 @@ export type GetUsersOptions = {
   sortOrder?: 'asc' | 'desc';
 };
 
-export const RoleUser = {
-  CUSTOMER: 'CUSTOMER',
-  PROFESSIONAL_USER: 'PROFESSIONAL_USER',
-  DISTRIBUTOR_USER: 'DISTRIBUTOR_USER',
-  SALES_REP_USER: 'SALES_REP_USER',
-  GROUP_USER: 'GROUP_USER',
-  SUPER_ADMIN: 'SUPER_ADMIN',
-  ADMIN: 'ADMIN'
-} as const;
+export const Roles = [
+  { label: 'Customer', value: 'customer' },
+  { label: 'Professional User', value: 'professional_user' },
+  { label: 'Distributor User', value: 'distributor_user' },
+  { label: 'Sales Rep User', value: 'sales_rep_user' },
+  { label: 'Group User', value: 'group_user' },
+  { label: 'Super Admin', value: 'super_admin' },
+  { label: 'Admin', value: 'admin' }
+] as const;
 
-export const Gender = {
-  MALE: 'male',
-  FEMALE: 'female'
-};
+export const Gender = [
+  { key: 'male', value: ' Male' },
+  { key: 'female', value: 'Female' }
+] as const;
 
-export const UserStatus = {
-  ACTIVE: 'active',
-  INACTIVE: 'inactive'
-} as const;
+export const AdminStatus = [
+  { label: 'Yes', value: true },
+  { label: 'No', value: false }
+];
+
+export const UserStatus = [
+  { label: 'Yes', value: true },
+  { label: 'No', value: false }
+];

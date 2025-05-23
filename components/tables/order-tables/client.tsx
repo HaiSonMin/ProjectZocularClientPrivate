@@ -7,7 +7,6 @@ import { Order } from '@/types/order';
 import { Plus, RefreshCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { columns } from './columns';
-import orderApi from '@/services/api/modules/order-api';
 import Loading from '@/components/ui/loading';
 import React from 'react';
 interface ProductsClientProps {

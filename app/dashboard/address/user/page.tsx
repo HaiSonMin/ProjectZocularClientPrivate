@@ -5,7 +5,6 @@ import PageContainer from '@/components/layout/page-container';
 import { AddressClient } from '@/components/tables/address-tables/client';
 import React from 'react';
 import { Address } from '@/types/address';
-import addressApi from '@/services/api/modules/address-api';
 import Loading from '@/components/ui/loading';
 
 const breadcrumbItems = [

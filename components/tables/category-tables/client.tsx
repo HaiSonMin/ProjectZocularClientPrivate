@@ -7,7 +7,6 @@ import { Category } from '@/types/category';
 import { Plus, RefreshCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { columns } from './columns';
-import categoryApi from '@/services/api/modules/category-api';
 import Loading from '@/components/ui/loading';
 import React from 'react';
 

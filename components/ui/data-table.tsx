@@ -20,19 +20,8 @@ import {
 } from '@/components/ui/table';
 import { ScrollArea } from './scroll-area';
 import { ArrowDown, ArrowUp } from 'lucide-react';
-import companyApi from '@/services/api/modules/company-api';
-import addressApi from '@/services/api/modules/address-api';
-import categoryApi from '@/services/api/modules/category-api';
-import productApi from '@/services/api/modules/product-api';
+
 import { DebouncedInput } from './debounce-input';
-import orderApi from '@/services/api/modules/order-api';
-declare module '@tanstack/react-table' {
-  interface ColumnMeta<TData extends RowData, TValue> {
-    filterVariant?: 'text' | 'range' | 'select' | 'action';
-    options?: string[];
-    accessorKey?: string;
-  }
-}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

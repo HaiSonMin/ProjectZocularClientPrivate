@@ -7,7 +7,6 @@ import { Plus, RefreshCcw, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { columns } from './columns';
 import { Company } from '@/types/company';
-import companyApi from '@/services/api/modules/company-api';
 import { useState } from 'react';
 import Loading from '@/components/ui/loading';
 

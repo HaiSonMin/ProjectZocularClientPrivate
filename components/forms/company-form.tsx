@@ -18,7 +18,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '../ui/use-toast';
-import companyApi from '@/services/api/modules/company-api';
 import { Company, CompanyStatus, CompanyType } from '@/types/company';
 import { Select, SelectContent, SelectItem, SelectValue } from '../ui/select';
 import { SelectTrigger } from '../ui/select';

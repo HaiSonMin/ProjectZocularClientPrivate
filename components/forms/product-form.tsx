@@ -20,8 +20,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '../ui/use-toast';
 import Loading from '../ui/loading';
-import productApi from '@/services/api/modules/product-api';
-import categoryApi from '@/services/api/modules/category-api';
+
 import isValidObjectId from '@/helper/isValidObjectId';
 
 const createFormSchema = z.object({

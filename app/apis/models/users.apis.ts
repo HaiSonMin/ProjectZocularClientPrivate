@@ -10,7 +10,7 @@ import {
   IBaseResponse,
   IGetManyItem
 } from '@/interfaces/common/IResponse.interface';
-import { User } from '@/interfaces/models';
+import { IUser } from '@/interfaces/models';
 import { revalidateTag } from 'next/cache';
 
 const TAG_NAME = {
@@ -19,7 +19,7 @@ const TAG_NAME = {
 };
 
 export async function findAll(queries?: IQueries) {
-  const result = await api<IBaseResponse<IGetManyItem<User>>>({
+  const result = await api<IBaseResponse<IGetManyItem<IUser>>>({
     url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.USERS}/${
       CONST_APIS_COMMON.GET_MULTI
     }${convertOjbToString(queries)}`,
@@ -33,8 +33,8 @@ export async function findAll(queries?: IQueries) {
   return result;
 }
 
-export async function create(payload: Partial<User>) {
-  const result = await api<IBaseResponse<User>>({
+export async function create(payload: Partial<IUser>) {
+  const result = await api<IBaseResponse<IUser>>({
     url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.USERS}/${CONST_APIS_COMMON.CREATE}`,
     options: {
       method: CONST_METHODS.POST,

@@ -6,7 +6,6 @@ import PageContainer from '@/components/layout/page-container';
 import { useParams } from 'next/navigation';
 import React from 'react';
 import { Category } from '@/types/category';
-import categoryApi from '@/services/api/modules/category-api';
 import Loading from '@/components/ui/loading';
 import isValidObjectId from '@/helper/isValidObjectId';
 let breadcrumbItems = [

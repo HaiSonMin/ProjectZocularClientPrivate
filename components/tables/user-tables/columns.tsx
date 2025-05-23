@@ -1,9 +1,11 @@
 'use client';
+
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
-import { User } from '@/interfaces/models';
+import { IUser } from '@/interfaces/models';
+import dayjs from 'dayjs';
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<IUser>[] = [
   {
     accessorKey: 'id',
     header: 'USER ID'
@@ -25,8 +27,40 @@ export const columns: ColumnDef<User>[] = [
     header: 'PHONE'
   },
   {
+    accessorKey: 'gender',
+    header: 'GENDER',
+    meta: {
+      filterVariant: 'select',
+      options: ['male', 'female', 'other']
+    }
+  },
+  {
+    accessorKey: 'birthdate',
+    header: 'BIRTHDATE',
+    cell: ({ getValue }) => {
+      const value = getValue<string | null>();
+      return value ? dayjs(value).format('YYYY-MM-DD') : 'N/A';
+    }
+  },
+  // {
+  //   accessorKey: 'avatar',
+  //   header: 'AVATAR',
+  //   cell: ({ getValue }) => {
+  //     const url = getValue<string>();
+  //     return <Image  src={url} alt="avatar" className="w-10 h-10 rounded-full" />;
+  //   },
+  // },
+  {
     accessorKey: 'role',
     header: 'ROLE'
+  },
+  {
+    accessorKey: 'licenseNumber',
+    header: 'LICENSE NO.'
+  },
+  {
+    accessorKey: 'licenseState',
+    header: 'LICENSE STATE'
   },
   {
     accessorKey: 'isBlocked',
@@ -35,6 +69,15 @@ export const columns: ColumnDef<User>[] = [
     meta: {
       filterVariant: 'select',
       options: ['active', 'inactive']
+    }
+  },
+  {
+    accessorKey: 'isRootAdmin',
+    header: 'ROOT ADMIN',
+    cell: ({ getValue }) => (getValue() === 1 ? 'Yes' : 'No'),
+    meta: {
+      filterVariant: 'select',
+      options: ['Yes', 'No']
     }
   },
   {

@@ -8,7 +8,6 @@ import React from 'react';
 import Loading from '@/components/ui/loading';
 import isValidObjectId from '@/helper/isValidObjectId';
 import { Address } from '@/types/address';
-import addressApi from '@/services/api/modules/address-api';
 let breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
   { title: 'Address', link: '/dashboard/address' },

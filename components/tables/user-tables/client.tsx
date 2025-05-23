@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { columns } from './columns';
 import Loading from '@/components/ui/loading';
 import React, { FC, useState } from 'react';
-import { User } from '@/interfaces/models';
+import { IUser } from '@/interfaces/models';
 interface ProductsClientProps {
   data: User[];
 
@@ -47,7 +47,7 @@ export const UserClient: FC<ProductsClientProps> = ({
             </div>
           </div>
           <Separator />
-          <DataTable<User, any>
+          <DataTable<IUser, any>
             columns={columns}
             data={data}
             tableType={'user'}

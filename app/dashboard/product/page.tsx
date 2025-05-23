@@ -5,7 +5,6 @@ import PageContainer from '@/components/layout/page-container';
 import { ProductClient } from '@/components/tables/product-tables/client';
 import React from 'react';
 import { Product } from '@/types/product';
-import productApi from '@/services/api/modules/product-api';
 import Loading from '@/components/ui/loading';
 const breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },

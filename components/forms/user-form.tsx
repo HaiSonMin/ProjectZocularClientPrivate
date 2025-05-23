@@ -21,80 +21,130 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { startTransition, useState } from 'react';
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '../ui/use-toast';
-import { Gender, RoleUser, UserStatus } from '@/types/user';
+import { AdminStatus, Gender, Roles, UserStatus } from '@/types/user';
 import Loading from '../ui/loading';
 import { create } from '@/app/apis/models/users.apis';
+import { EGender } from '@/enums/models/EGender.enum';
 
 const createFormSchema = z
   .object({
-    first_name: z.string().min(1, { message: 'First name is required' }),
-    last_name: z.string().min(1, { message: 'Last name is required' }),
+    firstName: z.string().min(1, { message: 'First name is required' }),
+    lastName: z.string().min(1, { message: 'Last name is required' }),
     email: z.string().email({ message: 'Invalid email address' }),
+    phone: z.string().min(1, { message: 'Mobile is required' }),
+    birthdate: z
+      .string()
+      .nonempty({ message: 'Birthdate is required' }) // Không được để trống
+      .regex(/^\d{2}-\d{2}-\d{4}$/, {
+        message: 'Birthdate must be in dd-mm-yyyy format'
+      })
+      .refine((val) => !isNaN(Date.parse(val.split('-').reverse().join('-'))), {
+        message: 'Invalid date'
+      }),
+
+    address: z.string().min(1, { message: 'Address is required' }),
+
+    role: z.enum(Roles.map((r) => r.value) as [string, ...string[]], {
+      required_error: 'Role is required'
+    }),
+
+    licenseNumber: z
+      .string()
+      .min(1, { message: 'License Number is required' })
+      .optional()
+      .or(z.literal('')),
+    licenseState: z
+      .string()
+      .min(1, { message: 'License State is required' })
+      .optional()
+      .or(z.literal('')),
+
+    gender: z.nativeEnum(EGender, {
+      required_error: 'Gender is required',
+      invalid_type_error: 'Invalid gender value'
+    }),
+
+    isBlocked: z.boolean({
+      required_error: 'Blocked flag is required',
+      invalid_type_error: 'Blocked flag must be a boolean'
+    }),
+
+    isRootAdmin: z.boolean({
+      required_error: 'RootAdmin flag is required',
+      invalid_type_error: 'RootAdmin flag must be a boolean'
+    }),
+
     password: z
       .string()
-      .min(8, { message: 'Password must be at least 8 characters long' }),
-    confirm_password: z
+      .min(8, { message: 'Password must be at least 8 characters' }),
+    confirmPassword: z
       .string()
-      .min(8, { message: 'Confirm password is required' }),
-    mobile_phone: z.string().min(1, { message: 'Mobile is required' }),
-    telephone: z.string().optional(),
-    birth_year: z.string(),
-    job_title: z.string().optional(),
-    gender: z.enum(Object.values(Gender) as [string, ...string[]], {
-      required_error: 'Gender must be either male or female'
-    }),
-    role: z.enum(Object.values(RoleUser) as [string, ...string[]], {
-      required_error: 'Role must be a valid role'
-    }),
-    status: z.enum(Object.values(UserStatus) as [string, ...string[]], {
-      required_error: 'Status must be either active or inactive'
-    })
+      .min(8, { message: 'Confirm password is required' })
   })
-  .refine((data) => data.password === data.confirm_password, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['confirm_password']
-  });
+    path: ['confirmPassword']
+  })
+
+  .transform(({ confirmPassword, ...rest }) => rest);
 
 const updateFormSchema = z
   .object({
-    first_name: z.string().optional(),
-    last_name: z.string().optional(),
-    email: z.string().email({ message: 'Invalid email address' }).optional(),
-    password: z.string().optional(),
-    confirm_password: z.string().optional(),
-    mobile_phone: z
+    firstName: z.string().min(1, { message: 'First name is required' }),
+    lastName: z.string().min(1, { message: 'Last name is required' }),
+    email: z.string().email({ message: 'Invalid email address' }),
+    phone: z.string().min(1, { message: 'Mobile is required' }),
+    birthdate: z
       .string()
-      .min(1, { message: 'Mobile is required' })
-      .optional(),
-    telephone: z.string().optional(),
-    birth_year: z.string().optional(),
-    job_title: z.string().optional(),
-    gender: z
-      .enum(Object.values(Gender) as [string, ...string[]], {
-        required_error: 'Gender must be either male or female'
+      .nonempty({ message: 'Birthdate is required' }) // Không được để trống
+      .regex(/^\d{2}-\d{2}-\d{4}$/, {
+        message: 'Birthdate must be in dd-mm-yyyy format'
       })
-      .optional(),
-    role: z
-      .enum(Object.values(RoleUser) as [string, ...string[]], {
-        required_error: 'Role must be a valid role'
-      })
-      .optional(),
-    status: z
-      .enum(Object.values(UserStatus) as [string, ...string[]], {
-        required_error: 'Status must be either active or inactive'
-      })
-      .optional(),
-    license_number: z.string().optional(),
-    license_state: z.string().optional()
+      .refine((val) => !isNaN(Date.parse(val.split('-').reverse().join('-'))), {
+        message: 'Invalid date'
+      }),
+
+    address: z.string().min(1, { message: 'Address is required' }),
+
+    role: z.enum(Roles.map((r) => r.value) as [string, ...string[]], {
+      required_error: 'Role is required'
+    }),
+
+    licenseNumber: z.string().min(1, { message: 'License Number is required' }),
+    licenseState: z.string().min(1, { message: 'License State is required' }),
+
+    gender: z.nativeEnum(EGender, {
+      required_error: 'Gender is required',
+      invalid_type_error: 'Invalid gender value'
+    }),
+
+    isBlocked: z.boolean({
+      required_error: 'Blocked flag is required',
+      invalid_type_error: 'Blocked flag must be a boolean'
+    }),
+
+    isRootAdmin: z.boolean({
+      required_error: 'RootAdmin flag is required',
+      invalid_type_error: 'RootAdmin flag must be a boolean'
+    }),
+
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters' }),
+    confirmPassword: z
+      .string()
+      .min(8, { message: 'Confirm password is required' })
   })
-  .refine((data) => data.password === data.confirm_password, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ['confirm_password']
-  });
+    path: ['confirmPassword']
+  })
+
+  .transform(({ confirmPassword, ...rest }) => rest);
 
 type UserFormValues = z.infer<
   typeof createFormSchema | typeof updateFormSchema
@@ -107,8 +157,8 @@ interface UserFormProps {
 export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
   const router = useRouter();
   const { toast } = useToast();
-  // const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, startTransition] = useTransition();
+
   const title = initialData ? 'Edit user' : 'Create user';
   const description = initialData ? 'Edit a user.' : 'Add a new user';
   const toastMessage = initialData
@@ -116,23 +166,26 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
     : 'User created successfully.';
   const action = initialData ? 'Save changes' : 'Create';
   if (initialData) {
-    initialData.birth_year = initialData.birth_year.toString();
+    initialData.birthdate = initialData.birthdate.toString();
   }
   const defaultValues = initialData
     ? initialData
     : {
-        first_name: '',
-        last_name: '',
+        firstName: '',
+        lastName: '',
         email: '',
+        phone: '',
+        birthdate: '',
+        avatar: '',
+        licenseNumber: '',
+        licenseState: '',
+        isRootAdmin: false,
         password: '',
-        confirm_password: '',
-        mobile_phone: '',
-        telephone: '',
-        birth_year: '0',
-        job_title: '',
-        gender: Gender.MALE,
-        role: RoleUser.CUSTOMER,
-        status: UserStatus.INACTIVE
+        confirmPassword: '',
+        gender: 'male',
+        role: 'customer',
+        isBlocked: false,
+        address: ''
       };
 
   const form = useForm<UserFormValues>({
@@ -141,21 +194,13 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
   });
 
   async function onSubmit(data: UserFormValues) {
-    const payload = {
-      fullName: `${data.first_name} ${data.last_name}`,
-      email: data.email,
-      password: data.password,
-      phone: data.mobile_phone,
-      gender: data.gender,
-      roles: [data.role],
-      rolesGroups: [],
-      department: data.job_title ?? '',
-      avatar: ''
-    };
     startTransition(() => {
       (async () => {
         try {
-          const response = await create(payload);
+          console.log('data', data);
+
+          const response = await create(data);
+
           console.log('response', response);
 
           // You may want to handle the response here, e.g. show a toast or redirect
@@ -190,191 +235,166 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
         <Loading />
       ) : (
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full space-y-8"
-          >
-            <div className="gap-8 md:grid md:grid-cols-3">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid gap-8 md:grid-cols-3">
+              {/* First Name */}
               <FormField
+                name="firstName"
                 control={form.control}
-                name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>First Name</FormLabel>
                     <FormControl>
                       <Input
-                        disabled={loading}
-                        placeholder="Enter your first name"
                         {...field}
+                        placeholder="First name"
+                        disabled={loading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Last Name */}
               <FormField
+                name="lastName"
                 control={form.control}
-                name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last name</FormLabel>
+                    <FormLabel>Last Name</FormLabel>
                     <FormControl>
                       <Input
-                        disabled={loading}
-                        placeholder="Enter your last name"
                         {...field}
+                        placeholder="Last name"
+                        disabled={loading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Email */}
               <FormField
-                control={form.control}
                 name="email"
+                control={form.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="Enter your email"
-                        disabled={loading}
                         {...field}
+                        placeholder="Email"
+                        disabled={loading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Password */}
               <FormField
-                control={form.control}
                 name="password"
+                control={form.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter your password"
-                        disabled={loading}
                         {...field}
+                        placeholder="Password"
+                        disabled={loading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Confirm Password */}
               <FormField
+                name="confirmPassword"
                 control={form.control}
-                name="confirm_password"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Confirm your password"
-                        disabled={loading}
                         {...field}
+                        placeholder="Confirm Password"
+                        disabled={loading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Phone */}
               <FormField
+                name="phone"
                 control={form.control}
-                name="mobile_phone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Mobile</FormLabel>
                     <FormControl>
                       <Input
-                        type="string"
-                        placeholder="Enter your mobile phone"
-                        disabled={loading}
                         {...field}
+                        placeholder="Mobile"
+                        disabled={loading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Birthdate */}
               <FormField
+                name="birthdate"
                 control={form.control}
-                name="telephone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telephone</FormLabel>
+                    <FormLabel>Birthdate</FormLabel>
                     <FormControl>
                       <Input
-                        type="string"
-                        placeholder="Enter your telephone"
-                        disabled={loading}
                         {...field}
+                        placeholder="Birthdate"
+                        disabled={loading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Gender */}
               <FormField
-                control={form.control}
-                name="birth_year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Birth year</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="string"
-                        placeholder="Enter your birth year"
-                        disabled={loading}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="job_title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job title</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter your job title"
-                        disabled={loading}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="gender"
+                control={form.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gender</FormLabel>
                     <FormControl>
                       <Select
-                        disabled={loading}
                         onValueChange={field.onChange}
                         value={field.value}
-                        defaultValue={field.value}
+                        disabled={loading}
                       >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue defaultValue={field.value} />
-                          </SelectTrigger>
-                        </FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={Gender.MALE}>Male</SelectItem>
-                          <SelectItem value={Gender.FEMALE}>Female</SelectItem>
+                          {Gender?.map((item, index) => (
+                            <SelectItem value={item.key} key={index}>
+                              {item.value}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -382,43 +402,33 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
                   </FormItem>
                 )}
               />
+
+              {/* Role */}
               <FormField
-                control={form.control}
                 name="role"
+                control={form.control}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
                     <FormControl>
                       <Select
-                        disabled={loading}
                         onValueChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
+                        value={
+                          field.value !== undefined
+                            ? field.value.toString()
+                            : ''
+                        }
+                        disabled={loading}
                       >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue defaultValue={field.value} />
-                          </SelectTrigger>
-                        </FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={RoleUser.CUSTOMER}>
-                            Customer
-                          </SelectItem>
-                          <SelectItem value={RoleUser.PROFESSIONAL_USER}>
-                            Professional User
-                          </SelectItem>
-                          <SelectItem value={RoleUser.DISTRIBUTOR_USER}>
-                            Distributor User
-                          </SelectItem>
-                          <SelectItem value={RoleUser.SALES_REP_USER}>
-                            Sales Rep User
-                          </SelectItem>
-                          <SelectItem value={RoleUser.GROUP_USER}>
-                            Group User
-                          </SelectItem>
-                          <SelectItem value={RoleUser.SUPER_ADMIN}>
-                            Super Admin
-                          </SelectItem>
+                          {Roles.map((role, index) => (
+                            <SelectItem key={index} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -426,49 +436,148 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
                   </FormItem>
                 )}
               />
+
+              {/* License Number */}
               <FormField
+                name="licenseNumber"
                 control={form.control}
-                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>License Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="License Number"
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* License State */}
+              <FormField
+                name="licenseState"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>License State</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="License State"
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Is Blocked */}
+              <FormField
+                name="isBlocked"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Blocked</FormLabel>
                     <FormControl>
                       <Select
+                        onValueChange={(value) =>
+                          field.onChange(value === 'true')
+                        }
+                        value={
+                          field.value !== undefined
+                            ? field.value.toString()
+                            : ''
+                        }
                         disabled={loading}
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
                       >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue defaultValue={field.value} />
-                          </SelectTrigger>
-                        </FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={UserStatus.ACTIVE}>
-                            Active
-                          </SelectItem>
-                          <SelectItem value={UserStatus.INACTIVE}>
-                            Inactive
-                          </SelectItem>
+                          {UserStatus.map((status, index) => (
+                            <SelectItem
+                              key={index}
+                              value={status.value.toString()}
+                            >
+                              {status.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Is Root Admin */}
+              <FormField
+                name="isRootAdmin"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Admin</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value === 'true')
+                        }
+                        value={field.value.toString()}
+                        disabled={loading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {AdminStatus.map((status, index) => (
+                            <SelectItem
+                              key={index}
+                              value={status.value.toString()}
+                            >
+                              {status.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Avatar URL */}
+              <FormField
+                name="address"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Address"
+                        disabled={loading}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <div className="flex items-center justify-start gap-4">
+
+            <div className="flex items-center gap-4">
               <Button
-                type="button"
                 variant="outline"
                 onClick={() => router.push('/dashboard/user')}
                 disabled={loading}
               >
                 Cancel
               </Button>
-              <Button disabled={loading} type="submit">
+              <Button type="submit" disabled={loading}>
                 {action}
               </Button>
             </div>

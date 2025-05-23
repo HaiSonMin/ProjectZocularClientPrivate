@@ -26,7 +26,6 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '../ui/use-toast';
 import Loading from '../ui/loading';
-import categoryApi from '@/services/api/modules/category-api';
 import { CreateCategory } from '@/types/category';
 
 const createFormSchema = z.object({

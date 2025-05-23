@@ -7,7 +7,6 @@ import { Address } from '@/types/address';
 import { Plus, RefreshCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { columns, companyColumns, userColumns } from './columns';
-import addressApi from '@/services/api/modules/address-api';
 import Loading from '@/components/ui/loading';
 import React, { useEffect } from 'react';
 

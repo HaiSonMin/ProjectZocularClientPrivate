@@ -5,7 +5,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Company } from '@/types/company';
 import { useParams } from 'next/navigation';
 import React from 'react';
-import companyApi from '@/services/api/modules/company-api';
 import Loading from '@/components/ui/loading';
 import isValidObjectId from '@/helper/isValidObjectId';
 let breadcrumbItems = [

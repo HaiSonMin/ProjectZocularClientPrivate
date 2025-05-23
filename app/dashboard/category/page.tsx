@@ -3,7 +3,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
 import { CategoryClient } from '@/components/tables/category-tables/client';
-import categoryApi from '@/services/api/modules/category-api';
 import React from 'react';
 import { Category } from '@/types/category';
 import Loading from '@/components/ui/loading';

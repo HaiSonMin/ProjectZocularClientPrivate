@@ -14,7 +14,6 @@ export function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/dashboard')) {
     if (!token) {
-      // chưa login → đưa về login
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
 

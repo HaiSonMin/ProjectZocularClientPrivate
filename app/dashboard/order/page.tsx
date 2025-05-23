@@ -3,7 +3,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
 import { OrderClient } from '@/components/tables/order-tables/client';
-import orderApi from '@/services/api/modules/order-api';
 import React from 'react';
 import { Order } from '@/types/order';
 import Loading from '@/components/ui/loading';

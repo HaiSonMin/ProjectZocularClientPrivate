@@ -11,7 +11,7 @@ import {
   IAuthResetPassword,
   IChangePassword
 } from '@/interfaces/models/IAuth.interface';
-import { IUser, User } from '@/interfaces/models/IUser.interface';
+import { IUser } from '@/interfaces/models/IUser.interface';
 import { api } from '@/helper';
 import { CONST_METHODS } from '@/constants/methods.constant';
 
@@ -41,8 +41,8 @@ export async function login(payload: IAuthLogin) {
 }
 
 export async function getMe() {
-  const result = await api<IBaseResponse<User>>({
-    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.AUTH}/${CONST_APIS.FEATURES.AUTH.GET_ME}`,
+  const result = await api<IBaseResponse<IUser>>({
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.AUTH}/${CONST_APIS.FEATURES.AUTH.GET_ME}`,
     options: {
       method: CONST_METHODS.GET,
       next: {
