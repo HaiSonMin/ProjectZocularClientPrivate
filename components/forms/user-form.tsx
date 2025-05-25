@@ -21,14 +21,16 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { FC, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useToast } from '../ui/use-toast';
+
 import { AdminStatus, Gender, Roles, UserStatus } from '@/types/user';
 import Loading from '../ui/loading';
-import { create } from '@/app/apis/models/users.apis';
+import { create, removeMulti, update } from '@/app/apis/models/users.apis';
 import { EGender } from '@/enums/models/EGender.enum';
+import { toast } from '../ui/use-toast';
+import { AlertModal } from '../modal/alert-modal';
 
 const createFormSchema = z
   .object({
@@ -67,17 +69,15 @@ const createFormSchema = z
       required_error: 'Gender is required',
       invalid_type_error: 'Invalid gender value'
     }),
-
     isBlocked: z.boolean({
-      required_error: 'Blocked flag is required',
-      invalid_type_error: 'Blocked flag must be a boolean'
+      required_error: 'Blocked status is required',
+      invalid_type_error: 'Blocked status must be a boolean'
     }),
 
     isRootAdmin: z.boolean({
-      required_error: 'RootAdmin flag is required',
-      invalid_type_error: 'RootAdmin flag must be a boolean'
+      required_error: 'Admin status is required',
+      invalid_type_error: 'Admin status must be a boolean'
     }),
-
     password: z
       .string()
       .min(8, { message: 'Password must be at least 8 characters' }),
@@ -88,9 +88,7 @@ const createFormSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword']
-  })
-
-  .transform(({ confirmPassword, ...rest }) => rest);
+  });
 
 const updateFormSchema = z
   .object({
@@ -100,50 +98,51 @@ const updateFormSchema = z
     phone: z.string().min(1, { message: 'Mobile is required' }),
     birthdate: z
       .string()
-      .nonempty({ message: 'Birthdate is required' }) // Không được để trống
+      .nonempty({ message: 'Birthdate is required' })
       .regex(/^\d{2}-\d{2}-\d{4}$/, {
         message: 'Birthdate must be in dd-mm-yyyy format'
       })
       .refine((val) => !isNaN(Date.parse(val.split('-').reverse().join('-'))), {
         message: 'Invalid date'
       }),
-
     address: z.string().min(1, { message: 'Address is required' }),
-
     role: z.enum(Roles.map((r) => r.value) as [string, ...string[]], {
       required_error: 'Role is required'
     }),
-
     licenseNumber: z.string().min(1, { message: 'License Number is required' }),
     licenseState: z.string().min(1, { message: 'License State is required' }),
-
     gender: z.nativeEnum(EGender, {
       required_error: 'Gender is required',
       invalid_type_error: 'Invalid gender value'
     }),
-
     isBlocked: z.boolean({
-      required_error: 'Blocked flag is required',
-      invalid_type_error: 'Blocked flag must be a boolean'
+      required_error: 'Blocked status is required',
+      invalid_type_error: 'Blocked status must be a boolean'
     }),
-
     isRootAdmin: z.boolean({
-      required_error: 'RootAdmin flag is required',
-      invalid_type_error: 'RootAdmin flag must be a boolean'
+      required_error: 'Admin status is required',
+      invalid_type_error: 'Admin status must be a boolean'
     }),
-
     password: z
       .string()
-      .min(8, { message: 'Password must be at least 8 characters' }),
+      .min(8, { message: 'Password must be at least 8 characters' })
+      .optional()
+      .or(z.literal('')),
     confirmPassword: z
       .string()
       .min(8, { message: 'Confirm password is required' })
+      .optional()
+      .or(z.literal(''))
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword']
-  })
-
+  .refine(
+    (data) =>
+      (!data.password && !data.confirmPassword) ||
+      data.password === data.confirmPassword,
+    {
+      message: "Passwords don't match",
+      path: ['confirmPassword']
+    }
+  )
   .transform(({ confirmPassword, ...rest }) => rest);
 
 type UserFormValues = z.infer<
@@ -154,11 +153,11 @@ interface UserFormProps {
   initialData: any | null;
 }
 
-export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
+export const UserForm: FC<UserFormProps> = ({ initialData }) => {
   const router = useRouter();
-  const { toast } = useToast();
-  const [loading, startTransition] = useTransition();
 
+  const [loading, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
   const title = initialData ? 'Edit user' : 'Create user';
   const description = initialData ? 'Edit a user.' : 'Add a new user';
   const toastMessage = initialData
@@ -197,26 +196,78 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
     startTransition(() => {
       (async () => {
         try {
-          console.log('data', data);
+          const response = initialData
+            ? await update(initialData.id, data)
+            : await create(data);
 
-          const response = await create(data);
-
-          console.log('response', response);
-
-          // You may want to handle the response here, e.g. show a toast or redirect
+          if (response.statusCode === 200) {
+            if (!initialData) {
+              form.reset();
+            }
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: toastMessage
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
         } catch (error: any) {
           toast({
             title: 'error',
             variant: 'destructive',
-            description: 'Có lỗi xảy ra, vui lòng thử lại'
+            description: 'An error occurred, please try again.'
           });
         }
       })();
     });
   }
 
+  const onConfirm = async () => {
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = await removeMulti({ ids: [initialData.id] });
+
+          if (response.statusCode === 200) {
+            router.replace('/dashboard/user');
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: 'User deleted successfully'
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        } finally {
+          setOpen(false);
+        }
+      })();
+    });
+  };
+
   return (
     <>
+      <AlertModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={onConfirm}
+        loading={loading}
+      />
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
         {initialData && (
@@ -224,7 +275,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
             disabled={loading}
             variant="destructive"
             size="sm"
-            // onClick={() => setOpen(true)}
+            onClick={() => setOpen(true)}
           >
             <Trash className="h-4 w-4" />
           </Button>
@@ -487,11 +538,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
                         onValueChange={(value) =>
                           field.onChange(value === 'true')
                         }
-                        value={
-                          field.value !== undefined
-                            ? field.value.toString()
-                            : ''
-                        }
+                        value={field.value === true ? 'true' : 'false'}
                         disabled={loading}
                       >
                         <SelectTrigger>
@@ -526,7 +573,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData }) => {
                         onValueChange={(value) =>
                           field.onChange(value === 'true')
                         }
-                        value={field.value.toString()}
+                        value={field.value === true ? 'true' : 'false'}
                         disabled={loading}
                       >
                         <SelectTrigger>

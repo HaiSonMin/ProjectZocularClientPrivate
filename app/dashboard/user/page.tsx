@@ -21,7 +21,6 @@ export default async function Page() {
     <PageContainer>
       <div className="space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
-
         <UserClient data={metadata?.items ?? []} pagination={pagination} />
       </div>
     </PageContainer>

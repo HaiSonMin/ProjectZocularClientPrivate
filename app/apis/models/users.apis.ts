@@ -4,6 +4,7 @@ import { convertOjbToString } from '@/app/utils';
 import { CONST_APIS, CONST_APIS_COMMON } from '@/constants/apis.constant';
 import { CONST_METHODS } from '@/constants/methods.constant';
 import { api } from '@/helper';
+import { IActionMultiDto } from '@/interfaces/common/IDTo.interface';
 
 import { IQueries } from '@/interfaces/common/IRequest.interface';
 import {
@@ -42,5 +43,42 @@ export async function create(payload: Partial<IUser>) {
     }
   });
   revalidateTag(TAG_NAME.USERS);
+  return result;
+}
+
+export async function findOneById(id: string) {
+  const result = await api<IBaseResponse<IUser>>({
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.USERS}/${CONST_APIS_COMMON.DETAIL}/${id}`,
+    options: {
+      method: CONST_METHODS.GET,
+      next: {
+        tags: [`${TAG_NAME.USER}-${id}`]
+      }
+    }
+  });
+  return result;
+}
+
+export async function update(id: string, payload: Partial<IUser>) {
+  const result = await api<IBaseResponse<IUser>>({
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.USERS}/${id}`,
+    options: {
+      method: CONST_METHODS.PATCH,
+      body: JSON.stringify(payload)
+    }
+  });
+  revalidateTag(TAG_NAME.USER);
+  return result;
+}
+
+export async function removeMulti(payload: IActionMultiDto) {
+  const result = await api<IBaseResponse<IUser>>({
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.USERS}/${CONST_APIS_COMMON.DELETE_MULTI}`,
+    options: {
+      method: CONST_METHODS.DELETE,
+      body: JSON.stringify(payload)
+    }
+  });
+  revalidateTag(TAG_NAME.USER);
   return result;
 }

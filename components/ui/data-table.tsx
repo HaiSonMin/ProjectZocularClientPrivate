@@ -3,13 +3,13 @@ import {
   Column,
   ColumnDef,
   ColumnFiltersState,
-  RowData,
   flexRender,
   getCoreRowModel,
   useReactTable,
-  SortingState
+  SortingState,
+  RowData
 } from '@tanstack/react-table';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import {
   Table,
@@ -22,7 +22,13 @@ import { ScrollArea } from './scroll-area';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 
 import { DebouncedInput } from './debounce-input';
-
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    filterVariant?: 'text' | 'range' | 'select' | 'action';
+    options?: string[];
+    accessorKey?: string;
+  }
+}
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -122,7 +128,7 @@ export function DataTable<TData, TValue>({
     debugColumns: false
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadData = async () => {
       // setLoading(true);
       const options: any = {};
@@ -195,10 +201,9 @@ export function DataTable<TData, TValue>({
     loadData();
   }, [columnFilters, globalFilter, pagination, sorting, table, tableType]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setData(initialData);
   }, [initialData]);
-
   return (
     <>
       <div>
@@ -378,7 +383,11 @@ function Filter({ column }: { column: Column<any, unknown> }) {
     >
       {/* See faceted column filters example for dynamic select options */}
       <option value="">{`${column.columnDef.header}`}</option>
-      {options?.map((option) => <option value={option}>{option}</option>)}
+      {options?.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
     </select>
   ) : (
     <DebouncedInput

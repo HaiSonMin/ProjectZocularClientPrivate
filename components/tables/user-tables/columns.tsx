@@ -3,7 +3,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 import { IUser } from '@/interfaces/models';
-import dayjs from 'dayjs';
 
 export const columns: ColumnDef<IUser>[] = [
   {
@@ -36,20 +35,9 @@ export const columns: ColumnDef<IUser>[] = [
   },
   {
     accessorKey: 'birthdate',
-    header: 'BIRTHDATE',
-    cell: ({ getValue }) => {
-      const value = getValue<string | null>();
-      return value ? dayjs(value).format('YYYY-MM-DD') : 'N/A';
-    }
+    header: 'BIRTHDATE'
   },
-  // {
-  //   accessorKey: 'avatar',
-  //   header: 'AVATAR',
-  //   cell: ({ getValue }) => {
-  //     const url = getValue<string>();
-  //     return <Image  src={url} alt="avatar" className="w-10 h-10 rounded-full" />;
-  //   },
-  // },
+
   {
     accessorKey: 'role',
     header: 'ROLE'
@@ -65,7 +53,7 @@ export const columns: ColumnDef<IUser>[] = [
   {
     accessorKey: 'isBlocked',
     header: 'STATUS',
-    cell: ({ getValue }) => (getValue() === 1 ? 'inactive' : 'active'),
+    cell: ({ getValue }) => (getValue() === true ? 'inactive' : 'active'),
     meta: {
       filterVariant: 'select',
       options: ['active', 'inactive']
@@ -74,7 +62,7 @@ export const columns: ColumnDef<IUser>[] = [
   {
     accessorKey: 'isRootAdmin',
     header: 'ROOT ADMIN',
-    cell: ({ getValue }) => (getValue() === 1 ? 'Yes' : 'No'),
+    cell: ({ getValue }) => (getValue() === true ? 'Yes' : 'No'),
     meta: {
       filterVariant: 'select',
       options: ['Yes', 'No']

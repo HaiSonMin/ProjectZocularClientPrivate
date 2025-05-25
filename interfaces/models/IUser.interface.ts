@@ -13,8 +13,8 @@ export interface IUser extends BoInterfaceModelsCommon.IBaseModel {
   licenseNumber?: string; // Tùy chọn (Optional)
   role: string;
   birthdate: string; // Format: YYYY-MM-DD
-  isRootAdmin: boolean;
   isBlocked: boolean;
+  isRootAdmin: boolean; // true hoặc false
 }
 export interface User {
   id: string;

@@ -6,8 +6,8 @@ import PageContainer from '@/components/layout/page-container';
 import { useParams } from 'next/navigation';
 import React from 'react';
 import Loading from '@/components/ui/loading';
-import isValidObjectId from '@/helper/isValidObjectId';
 import { IUser } from '@/interfaces/models';
+
 let breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
   { title: 'User', link: '/dashboard/user' },

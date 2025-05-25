@@ -32,7 +32,7 @@ export const CONST_APIS = {
 
 export const CONST_APIS_COMMON = {
   CREATE: 'create',
-  GET_BY_ID: 'get-by-id',
+  DETAIL: 'detail',
   GET_ONE_BY_FIELD: 'get-one-by-field',
   GET_MULTI_BY_FIELDS: 'get-multi-by-fields',
   GET_MULTI: 'multi',
