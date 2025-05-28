@@ -6,8 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, RefreshCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { columns } from './columns';
-import Loading from '@/components/ui/loading';
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 import { IUser } from '@/interfaces/models';
 interface ProductsClientProps {
   data: IUser[];
@@ -15,13 +14,8 @@ interface ProductsClientProps {
   pagination: any;
 }
 
-export const UserClient: FC<ProductsClientProps> = ({
-  data,
-
-  pagination
-}) => {
+export const UserClient: FC<ProductsClientProps> = ({ data, pagination }) => {
   const router = useRouter();
-  const [loading, setLoading] = useState<boolean>(false);
 
   return (
     <>

@@ -1,6 +1,6 @@
 'use server';
 
-import { convertOjbToString } from '@/app/utils';
+import { buildQueryString, convertOjbToString } from '@/app/utils';
 import { CONST_APIS, CONST_APIS_COMMON } from '@/constants/apis.constant';
 import { CONST_METHODS } from '@/constants/methods.constant';
 import { api } from '@/helper';
@@ -19,11 +19,11 @@ const TAG_NAME = {
   USERS: ' USERS'
 };
 
-export async function findAll(queries?: IQueries) {
+export async function findAll(queries?: string | IQueries) {
   const result = await api<IBaseResponse<IGetManyItem<IUser>>>({
     url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.USERS}/${
       CONST_APIS_COMMON.GET_MULTI
-    }${convertOjbToString(queries)}`,
+    }${queries?.length > 0 ? queries : ''}`,
     options: {
       method: CONST_METHODS.GET,
       next: {

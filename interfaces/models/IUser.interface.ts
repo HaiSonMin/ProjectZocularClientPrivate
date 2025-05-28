@@ -16,23 +16,3 @@ export interface IUser extends BoInterfaceModelsCommon.IBaseModel {
   isBlocked: boolean;
   isRootAdmin: boolean; // true hoặc false
 }
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  gender: 'male' | 'female' | 'other' | string;
-  birthdate: string | null;
-  avatar: string;
-  role: string | null;
-  licenseNumber: string | null;
-  licenseState: string | null;
-  isBlocked: number; // 0 or 1
-  isRootAdmin: number; // 0 or 1
-  createdAt: string; // ISO date
-  updatedAt: string; // ISO date
-  createdBy: string | null;
-  updatedBy: string | null;
-  version: number;
-}

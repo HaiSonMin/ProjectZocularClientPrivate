@@ -9,7 +9,7 @@ import {
   SortingState,
   RowData
 } from '@tanstack/react-table';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   Table,
@@ -22,11 +22,15 @@ import { ScrollArea } from './scroll-area';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 
 import { DebouncedInput } from './debounce-input';
+import { findAll } from '@/app/apis/models/users.apis';
+import { ECompare } from '@/interfaces/common/IRequest.interface';
+import { buildQueryString } from '@/app/utils';
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: 'text' | 'range' | 'select' | 'action';
-    options?: string[];
+    options?: string[]; // For select
     accessorKey?: string;
+    defaultFilterOperator?: ECompare; // THÊM DÒNG NÀY
   }
 }
 interface DataTableProps<TData, TValue> {
@@ -50,20 +54,22 @@ export function DataTable<TData, TValue>({
   tableType,
   pagination: initialPagination
 }: DataTableProps<TData, TValue>) {
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [globalFilter, setGlobalFilter] = React.useState('');
-  const [data, setData] = React.useState(initialData);
-  const [pagination, setPagination] = React.useState({
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const [data, setData] = useState(initialData);
+  const [pagination, setPagination] = useState({
     pageIndex: Number(initialPagination?.current_page) || 0,
     pageSize: 10
   });
-  // const [loading, setLoading] = React.useState<boolean>(false);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [totalPages, setTotalPages] = useState(
+    Math.ceil((initialPagination.totalItems ?? 0) / pagination.pageSize)
+  );
+  // const [loading, setLoading] = useState<boolean>(false);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     data,
     columns,
+    pageCount: totalPages,
     filterFns: {
       dateBetweenFilterFn: (row, columnId, filterValue: [number, number]) => {
         const value = row.getValue(columnId) as number;
@@ -75,7 +81,7 @@ export function DataTable<TData, TValue>({
     },
     state: {
       columnFilters,
-      globalFilter,
+
       pagination,
       sorting
     },
@@ -114,14 +120,7 @@ export function DataTable<TData, TValue>({
         return newValue;
       });
     },
-    onGlobalFilterChange: (updater) => {
-      setGlobalFilter((old) => {
-        const newValue = typeof updater === 'function' ? updater(old) : updater;
 
-        if (old === newValue) return old;
-        return newValue;
-      });
-    },
     getCoreRowModel: getCoreRowModel(),
     debugTable: true,
     debugHeaders: true,
@@ -141,25 +140,25 @@ export function DataTable<TData, TValue>({
 
       // Handle sorting
       if (sorting.length > 0) {
-        options.sortField = sorting[0].id;
-        options.sortOrder = sorting[0].desc ? 'desc' : 'asc';
+        options.sortChildrenBy = sorting[0].id;
+        options.sortDir = sorting[0].desc ? 'DESC' : 'ASC';
       }
 
-      // Handle filters
+      options.filters = [];
       columnFilters.forEach((filter) => {
-        (options[filter.id as keyof any] as string | undefined) =
-          filter.value as string;
+        options.filters.push(filter);
       });
 
-      // Global search
-      if (globalFilter) {
-        options.search = globalFilter;
-      }
       let result;
       switch (tableType) {
         case 'user':
-          result = await userApi.getUsers(options);
-          setData(result.response.users);
+          result = await findAll(buildQueryString(options));
+
+          if (result.metadata && result.metadata.items) {
+            setData(result.metadata.items as TData[]);
+          } else {
+            setData([]);
+          }
           break;
         case 'company':
           result = await companyApi.getCompanies(options);
@@ -191,33 +190,25 @@ export function DataTable<TData, TValue>({
           break;
       }
       if (result) {
-        table.setPageCount(
-          Math.ceil(result.response.pagination.total / pagination.pageSize)
-        );
+        const totalItems = result.metadata.totalItems;
+        setTotalPages(Math.ceil(totalItems / pagination.pageSize));
       }
       // setLoading(false);
     };
 
     loadData();
-  }, [columnFilters, globalFilter, pagination, sorting, table, tableType]);
+  }, [columnFilters, pagination, sorting, table, tableType]);
 
   useEffect(() => {
     setData(initialData);
   }, [initialData]);
+
   return (
     <>
-      <div>
-        <DebouncedInput
-          value={globalFilter ?? ''}
-          onChange={(value) => setGlobalFilter(String(value))}
-          className="font-lg border-block w-full border p-2 shadow"
-          placeholder="🔍 Search all columns..."
-        />
-      </div>
       {/* {loading ? (
         <Loading />
       ) :  */}
-      <ScrollArea className="h-[calc(80vh-220px)] rounded-md border">
+      <ScrollArea className="h-[calc(80vh-150px)] rounded-md border">
         <Table className="relative">
           <TableHeader>
             <tr>
@@ -392,7 +383,9 @@ function Filter({ column }: { column: Column<any, unknown> }) {
   ) : (
     <DebouncedInput
       className="w-full rounded border p-2 shadow"
-      onChange={(value) => column.setFilterValue(value)}
+      onChange={(value) => {
+        column.setFilterValue(value);
+      }}
       placeholder={`${column.columnDef.header}...`}
       type="text"
       value={(columnFilterValue ?? '') as string}

@@ -30,7 +30,7 @@ export const columns: ColumnDef<IUser>[] = [
     header: 'GENDER',
     meta: {
       filterVariant: 'select',
-      options: ['male', 'female', 'other']
+      options: ['male', 'female']
     }
   },
   {
@@ -52,11 +52,12 @@ export const columns: ColumnDef<IUser>[] = [
   },
   {
     accessorKey: 'isBlocked',
-    header: 'STATUS',
-    cell: ({ getValue }) => (getValue() === true ? 'inactive' : 'active'),
+    header: 'BLOCKED',
+
+    cell: ({ getValue }) => (getValue() === true ? 'Inactive' : 'Active'),
     meta: {
       filterVariant: 'select',
-      options: ['active', 'inactive']
+      options: ['Active', 'Inactive']
     }
   },
   {

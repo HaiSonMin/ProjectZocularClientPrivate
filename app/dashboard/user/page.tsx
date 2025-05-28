@@ -11,17 +11,18 @@ const breadcrumbItems = [
 export default async function Page() {
   const { metadata } = await findAll();
 
-  let pagination = {
-    page: 1,
-    pageSize: 10,
-    total: 0
-  };
-
   return (
     <PageContainer>
       <div className="space-y-2">
         <Breadcrumbs items={breadcrumbItems} />
-        <UserClient data={metadata?.items ?? []} pagination={pagination} />
+        <UserClient
+          data={metadata?.items ?? []}
+          pagination={{
+            current_page: 1,
+
+            total: metadata?.totalItems
+          }}
+        />
       </div>
     </PageContainer>
   );
