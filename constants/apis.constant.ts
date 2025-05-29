@@ -25,7 +25,8 @@ export const CONST_APIS = {
       ORDER_ITEMS: 'order-items',
       ORDER: 'order',
       PAYMENT: 'payment',
-      SKIPPING: 'skipping'
+      SKIPPING: 'skipping',
+      COMPANY: 'company'
     }
   }
 };

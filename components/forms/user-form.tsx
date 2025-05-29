@@ -37,7 +37,10 @@ const createFormSchema = z
     firstName: z.string().min(1, { message: 'First name is required' }),
     lastName: z.string().min(1, { message: 'Last name is required' }),
     email: z.string().email({ message: 'Invalid email address' }),
-    phone: z.string().min(1, { message: 'Mobile is required' }),
+    phone: z
+      .string()
+      .min(1, { message: 'Phone is required' })
+      .regex(/^[0-9+\-\s()]+$/, { message: 'Invalid phone number format' }),
     birthdate: z
       .string()
       .nonempty({ message: 'Birthdate is required' }) // Không được để trống
@@ -95,7 +98,10 @@ const updateFormSchema = z
     firstName: z.string().min(1, { message: 'First name is required' }),
     lastName: z.string().min(1, { message: 'Last name is required' }),
     email: z.string().email({ message: 'Invalid email address' }),
-    phone: z.string().min(1, { message: 'Mobile is required' }),
+    phone: z
+      .string()
+      .min(1, { message: 'Phone is required' })
+      .regex(/^[0-9+\-\s()]+$/, { message: 'Invalid phone number format' }),
     birthdate: z
       .string()
       .nonempty({ message: 'Birthdate is required' })

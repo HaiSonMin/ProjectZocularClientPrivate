@@ -12,7 +12,7 @@ import { toast } from '@/components/ui/use-toast';
 let breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
   { title: 'User', link: '/dashboard/user' },
-  { title: 'Create', link: '/dashboard/user/create' }
+  { title: 'Edit', link: '' }
 ];
 export default function Page() {
   const { userId } = useParams();

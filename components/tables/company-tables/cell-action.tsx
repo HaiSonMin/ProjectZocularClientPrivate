@@ -9,13 +9,13 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { toast } from '@/components/ui/use-toast';
-import { Company } from '@/types/company';
-import { BookCheck, Copy, Edit, MoreHorizontal, Trash } from 'lucide-react';
+import { ICompany } from '@/interfaces/models/ICompany.interface';
+import { Copy, Edit, MoreHorizontal, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface CellActionProps {
-  data: Company;
+  data: ICompany;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
@@ -42,19 +42,15 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
           <DropdownMenuItem
-            onClick={() => router.push(`/dashboard/company/${data._id}`)}
-          >
-            <BookCheck className="mr-2 h-4 w-4" /> Activate
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => router.push(`/dashboard/company/${data._id}`)}
+            onClick={() => router.push(`/dashboard/company/${data.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" /> Update
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              navigator.clipboard.writeText(data._id);
+              navigator.clipboard.writeText(data.id);
               toast({
                 title: 'Copied to clipboard',
                 description: 'Company ID copied to clipboard',

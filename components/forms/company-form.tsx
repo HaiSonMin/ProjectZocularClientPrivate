@@ -14,73 +14,51 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useToast } from '../ui/use-toast';
-import { Company, CompanyStatus, CompanyType } from '@/types/company';
+import { toast } from '../ui/use-toast';
+import { CompanyType } from '@/types/company';
 import { Select, SelectContent, SelectItem, SelectValue } from '../ui/select';
 import { SelectTrigger } from '../ui/select';
-import isValidObjectId from '@/helper/isValidObjectId';
 import Loading from '../ui/loading';
+import { create, update } from '@/app/apis/models/company.apis';
+
 const createFormSchema = z.object({
-  owner_id: z
-    .string()
-    .min(1, { message: 'Owner is required' })
-    .refine((value) => isValidObjectId(value), { message: 'Invalid owner ID' }),
   name: z.string().min(1, { message: 'Name is required' }),
-  bussiness_specialty: z
+  businessSpecialty: z
     .string()
     .min(1, { message: 'Business specialty is required' }),
-  type: z.enum(Object.values(CompanyType) as [string, ...string[]], {
-    required_error: 'Type is required'
-  }),
-  parent_company_id: z
+  phone: z
     .string()
-    .optional()
-    .refine((value) => value !== undefined && isValidObjectId(value), {
-      message: 'Invalid parent company ID'
-    }),
-  website_url: z.string().min(1, { message: 'Website URL is required' }),
-  email: z
-    .string()
-    .email({ message: 'Invalid email address' })
-    .min(1, { message: 'Email is required' }),
-  phone: z.string().min(1, { message: 'Phone is required' }),
+    .min(1, { message: 'Phone is required' })
+    .regex(/^[0-9+\-\s()]+$/, { message: 'Invalid phone number format' }),
   fax: z.string().min(1, { message: 'Fax is required' }),
-  status: z.enum(Object.values(CompanyStatus) as [string, ...string[]], {
-    required_error: 'Status is required'
-  })
-});
-const updateFormSchema = z.object({
-  owner_id: z
-    .string()
-    .optional()
-    .refine((value) => value !== undefined && isValidObjectId(value), {
-      message: 'Invalid owner ID'
-    }),
-  name: z.string().optional(),
-  bussiness_specialty: z.string().optional(),
   type: z
     .enum(Object.values(CompanyType) as [string, ...string[]], {
       required_error: 'Type is required'
     })
     .optional(),
-  parent_company_id: z
+  address: z.string().min(1, { message: 'Address is required' })
+});
+
+const updateFormSchema = z.object({
+  name: z.string().min(1, { message: 'Name is required' }).optional(),
+  businessSpecialty: z
     .string()
-    .optional()
-    .refine((value) => value !== undefined && isValidObjectId(value), {
-      message: 'Invalid parent company ID'
-    }),
-  website_url: z.string().optional(),
-  email: z.string().email({ message: 'Invalid email address' }).optional(),
-  phone: z.string().optional(),
-  fax: z.string().optional(),
-  status: z
-    .enum(Object.values(CompanyStatus) as [string, ...string[]], {
-      required_error: 'Status is required'
+    .min(1, { message: 'Business specialty is required' })
+    .optional(),
+  phone: z
+    .string()
+    .min(1, { message: 'Phone is required' })
+    .regex(/^[0-9+\-\s()]+$/, { message: 'Invalid phone number format' }),
+  fax: z.string().min(1, { message: 'Fax is required' }).optional(),
+  type: z
+    .enum(Object.values(CompanyType) as [string, ...string[]], {
+      required_error: 'Type is required'
     })
-    .optional()
+    .optional(),
+  address: z.string().min(1, { message: 'Address is required' }).optional()
 });
 
 type CompanyFormValues = z.infer<
@@ -93,9 +71,8 @@ interface CompanyFormProps {
 
 export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
   const router = useRouter();
-  const { toast } = useToast();
-  // const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, startTransition] = useTransition();
+
   const title = initialData ? 'Edit company' : 'Create company';
   const description = initialData ? 'Edit a company.' : 'Add a new company';
   const toastMessage = initialData
@@ -105,16 +82,12 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
   const defaultValues = initialData
     ? initialData
     : {
-        owner_id: undefined,
-        name: undefined,
-        bussiness_specialty: undefined,
-        type: CompanyType.PROFESSIONAL,
-        parent_company_id: undefined,
-        website_url: undefined,
-        email: undefined,
-        phone: undefined,
-        fax: undefined,
-        status: CompanyStatus.ACTIVE
+        name: '',
+        businessSpecialty: '',
+        phone: '',
+        fax: '',
+        type: CompanyType.GROUP,
+        address: ''
       };
 
   const form = useForm<CompanyFormValues>({
@@ -122,35 +95,42 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
     defaultValues
   });
 
-  const onSubmit = async (data: CompanyFormValues) => {
-    try {
-      setLoading(true);
-      if (initialData) {
-        const { response } = await companyApi.updateCompany(
-          initialData._id,
-          data as Company
-        );
-        console.log('response', response);
-      } else {
-        await companyApi.createCompany(data as Company);
-      }
-      router.refresh();
-      router.push(`/dashboard/company`);
-      toast({
-        variant: 'default',
-        title: toastMessage,
-        description: toastMessage
-      });
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: error?.message ?? 'There was a problem with your request.'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  async function onSubmit(data: CompanyFormValues) {
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = initialData
+            ? await update(initialData.id, data)
+            : await create(data);
+
+          console.log('response', response);
+
+          if (response.statusCode === 200) {
+            if (!initialData) {
+              form.reset();
+            }
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: toastMessage
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        }
+      })();
+    });
+  }
 
   // const onDelete = async () => {
   //   try {
@@ -192,23 +172,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
             <div className="gap-8 md:grid md:grid-cols-3">
               <FormField
                 control={form.control}
-                name="owner_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Owner</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Owner"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
@@ -222,97 +185,14 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
               />
               <FormField
                 control={form.control}
-                name="bussiness_specialty"
+                name="businessSpecialty"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Business specialty</FormLabel>
+                    <FormLabel>Business Specialty</FormLabel>
                     <FormControl>
                       <Input
                         disabled={loading}
-                        placeholder="Business specialty"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <FormControl>
-                      <Select
-                        disabled={loading}
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormItem>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a type" />
-                              <SelectContent>
-                                {Object.values(CompanyType).map((type) => (
-                                  <SelectItem key={type} value={type}>
-                                    {type}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </SelectTrigger>
-                          </FormControl>
-                        </FormItem>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="parent_company_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parent company</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Parent company"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="website_url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website URL</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Website URL"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Email"
+                        placeholder="Business Specialty"
                         {...field}
                       />
                     </FormControl>
@@ -352,31 +232,44 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
               />
               <FormField
                 control={form.control}
-                name="status"
+                name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>Type</FormLabel>
+                    <Select
+                      disabled={loading}
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(CompanyType).map(([key, value]) => (
+                          <SelectItem key={key} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Select
+                      <Input
                         disabled={loading}
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormItem>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a status" />
-                              <SelectContent>
-                                {Object.values(CompanyStatus).map((status) => (
-                                  <SelectItem key={status} value={status}>
-                                    {status}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </SelectTrigger>
-                          </FormControl>
-                        </FormItem>
-                      </Select>
+                        placeholder="Address"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

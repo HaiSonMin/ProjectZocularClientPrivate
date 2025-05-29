@@ -22,7 +22,9 @@ import { ScrollArea } from './scroll-area';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 
 import { DebouncedInput } from './debounce-input';
-import { findAll } from '@/app/apis/models/users.apis';
+import { findAll as findAllUser } from '@/app/apis/models/users.apis';
+import { findAll as findAllCompany } from '@/app/apis/models/company.apis';
+
 import { ECompare } from '@/interfaces/common/IRequest.interface';
 import { buildQueryString } from '@/app/utils';
 declare module '@tanstack/react-table' {
@@ -69,7 +71,6 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    pageCount: totalPages,
     filterFns: {
       dateBetweenFilterFn: (row, columnId, filterValue: [number, number]) => {
         const value = row.getValue(columnId) as number;
@@ -131,10 +132,10 @@ export function DataTable<TData, TValue>({
     const loadData = async () => {
       // setLoading(true);
       const options: any = {};
+
       if (pagination.pageSize > 0) {
-        if (pagination.pageIndex > 0) {
-          options.page = pagination.pageIndex;
-        }
+        options.page = pagination.pageIndex;
+
         options.limit = pagination.pageSize;
       }
 
@@ -152,7 +153,7 @@ export function DataTable<TData, TValue>({
       let result;
       switch (tableType) {
         case 'user':
-          result = await findAll(buildQueryString(options));
+          result = await findAllUser(buildQueryString(options));
 
           if (result.metadata && result.metadata.items) {
             setData(result.metadata.items as TData[]);
@@ -161,8 +162,12 @@ export function DataTable<TData, TValue>({
           }
           break;
         case 'company':
-          result = await companyApi.getCompanies(options);
-          setData(result.response.companies);
+          result = await findAllCompany(buildQueryString(options));
+          if (result.metadata && result.metadata.items) {
+            setData(result.metadata.items as TData[]);
+          } else {
+            setData([]);
+          }
           break;
         case 'address':
           result = await addressApi.getAddresses(options);
@@ -301,8 +306,7 @@ export function DataTable<TData, TValue>({
         <span className="flex items-center gap-1">
           <div>Page</div>
           <strong>
-            {table.getState().pagination.pageIndex} of{' '}
-            {initialPagination.total_pages}
+            {table.getState().pagination.pageIndex} of {totalPages}
           </strong>
         </span>
         <span className="flex items-center gap-1">
@@ -310,10 +314,11 @@ export function DataTable<TData, TValue>({
           <input
             type="number"
             min={1}
-            max={initialPagination.total_pages}
+            max={totalPages}
             defaultValue={table.getState().pagination.pageIndex}
             onChange={(e) => {
               const page = e.target.value ? Number(e.target.value) : 0;
+
               table.setPageIndex(page);
             }}
             className="w-16 rounded border p-1"

@@ -41,8 +41,8 @@ export const CompanyStatus = {
 } as const;
 
 export const CompanyType = {
-  GROUP: 'GROUP',
-  DISTRIBUTOR: 'DISTRIBUTOR',
-  SALES_REP: 'SALES_REP',
-  PROFESSIONAL: 'PROFESSIONAL'
+  GROUP: 'group',
+  DISTRIBUTOR: 'distributor',
+  SALES_REP: 'sales_rep',
+  PROFESSIONAL: 'professional'
 } as const;

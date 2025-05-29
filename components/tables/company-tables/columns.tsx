@@ -1,11 +1,11 @@
 'use client';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
-import { Company, CompanyStatus, CompanyType } from '@/types/company';
+import { ICompany } from '@/interfaces/models/ICompany.interface';
 
-export const columns: ColumnDef<Company>[] = [
+export const columns: ColumnDef<ICompany>[] = [
   {
-    accessorKey: '_id',
+    accessorKey: 'id',
     header: 'Company ID'
   },
   {
@@ -13,7 +13,7 @@ export const columns: ColumnDef<Company>[] = [
     header: 'NAME'
   },
   {
-    accessorKey: 'bussiness_specialty',
+    accessorKey: 'businessSpecialty',
     header: 'BUSINESS SPECIALTY'
   },
   {
@@ -29,16 +29,12 @@ export const columns: ColumnDef<Company>[] = [
     header: 'TYPE',
     meta: {
       filterVariant: 'select',
-      options: Object.values(CompanyType)
+      options: ['group', 'distributor', 'sales_rep', 'professional']
     }
   },
   {
-    accessorKey: 'status',
-    header: 'STATUS',
-    meta: {
-      filterVariant: 'select',
-      options: Object.values(CompanyStatus)
-    }
+    accessorKey: 'address',
+    header: 'ADDRESS'
   },
   {
     accessorKey: 'actions',
