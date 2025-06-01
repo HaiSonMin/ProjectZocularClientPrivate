@@ -10,7 +10,15 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: ['utfs.io']
+    domains: ['utfs.io'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9001',
+        pathname: '/**'
+      }
+    ]
   }
 };
 

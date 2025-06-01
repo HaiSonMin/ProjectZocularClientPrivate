@@ -8,13 +8,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { IProductsCategory } from '@/interfaces/models';
 import { Copy, Edit, MoreHorizontal, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Category } from '@/types/category';
 
 interface CellActionProps {
-  data: Category;
+  data: IProductsCategory;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
@@ -43,13 +43,13 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
           <DropdownMenuItem
-            onClick={() => router.push(`/dashboard/category/${data._id}`)}
+            onClick={() => router.push(`/dashboard/category/${data.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" /> Update
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              navigator.clipboard.writeText(data._id);
+              navigator.clipboard.writeText(data.id);
             }}
           >
             <Copy className="mr-2 h-4 w-4" /> Copy ID

@@ -3,11 +3,12 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CategoryForm } from '@/components/forms/category-form';
 import PageContainer from '@/components/layout/page-container';
-import { useParams } from 'next/navigation';
-import React from 'react';
-import { Category } from '@/types/category';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import Loading from '@/components/ui/loading';
-import isValidObjectId from '@/helper/isValidObjectId';
+import { IProductsCategory } from '@/interfaces/models';
+import { toast } from '@/components/ui/use-toast';
+import { findOneById } from '@/app/apis/models/product-categories.apis';
 let breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
   { title: 'Category', link: '/dashboard/category' },
@@ -15,23 +16,34 @@ let breadcrumbItems = [
 ];
 export default function Page() {
   const { categoryId } = useParams();
-  const [category, setCategory] = React.useState<Category | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  React.useEffect(() => {
-    const fetchCategory = async () => {
-      if (categoryId !== 'new' && isValidObjectId(categoryId.toString())) {
-        setLoading(true);
-        breadcrumbItems = [
-          { title: 'Dashboard', link: '/dashboard' },
-          { title: 'Category', link: '/dashboard/category' },
-          { title: 'Edit', link: `/dashboard/category/${categoryId}` }
-        ];
-        const res = await categoryApi.getCategoryById(categoryId.toString());
-        setCategory(res.response);
-        setLoading(false);
+  const [category, setCategory] = useState<IProductsCategory | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
+
+  const fetchData = async () => {
+    try {
+      const response = await findOneById(categoryId as string);
+
+      if (!response.metadata) {
+        router.replace('/dashboard/category');
       }
-    };
-    fetchCategory();
+      setCategory(response?.metadata ?? null);
+    } catch (err) {
+      toast({
+        title: 'error',
+        variant: 'destructive',
+        description: 'Có lỗi xảy ra, vui lòng thử lại'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (categoryId && categoryId !== 'new') {
+      setLoading(true);
+      fetchData();
+    }
   }, [categoryId]);
   return (
     <PageContainer scrollable={true}>
@@ -40,7 +52,7 @@ export default function Page() {
       ) : (
         <div className="space-y-4">
           <Breadcrumbs items={breadcrumbItems} />
-          <CategoryForm initialData={category} key={category?._id} />
+          <CategoryForm initialData={category} key={category?.id} />
         </div>
       )}
     </PageContainer>

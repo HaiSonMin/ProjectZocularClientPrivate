@@ -21,21 +21,31 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useToast } from '../ui/use-toast';
 import Loading from '../ui/loading';
-import { CreateCategory } from '@/types/category';
+import FileUpload from '../file-upload';
+import {
+  create,
+  removeMulti,
+  update
+} from '@/app/apis/models/product-categories.apis';
+import { toast } from '../ui/use-toast';
+import { AlertModal } from '../modal/alert-modal';
 
 const createFormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
-  desc: z.string().optional()
+  img: z.string().url({ message: 'Image must be a valid URL' }).optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true)
 });
 
 const updateFormSchema = z.object({
   name: z.string().optional(),
-  desc: z.string().optional()
+  img: z.string().url({ message: 'Image must be a valid URL' }).optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional()
 });
 
 type CategoryFormValues = z.infer<
@@ -48,9 +58,8 @@ interface CategoryFormProps {
 
 export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
   const router = useRouter();
-  const { toast } = useToast();
-  // const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
   const title = initialData ? 'Edit category' : 'Create category';
   const description = initialData ? 'Edit a category.' : 'Add a new category';
   const toastMessage = initialData
@@ -61,58 +70,92 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
     ? initialData
     : {
         name: '',
-        desc: ''
+        img: '',
+        description: '',
+        isActive: false
       };
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(initialData ? updateFormSchema : createFormSchema),
     defaultValues
   });
+  const [loading, startTransition] = useTransition();
 
   const onSubmit = async (data: CategoryFormValues) => {
-    try {
-      setLoading(true);
-      if (initialData) {
-        await categoryApi.updateCategory(
-          initialData._id,
-          data as CreateCategory
-        );
-      } else {
-        await categoryApi.createCategory(data as CreateCategory);
-      }
-      router.refresh();
-      router.push(`/dashboard/category`);
-      toast({
-        variant: 'default',
-        title: toastMessage,
-        description: toastMessage
-      });
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
-      });
-    } finally {
-      setLoading(false);
-    }
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = initialData
+            ? await update(initialData.id, data)
+            : await create(data);
+
+          if (response.statusCode === 200) {
+            if (!initialData) {
+              form.reset();
+            }
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: toastMessage
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        }
+      })();
+    });
   };
+  const onConfirm = async () => {
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = await removeMulti({ ids: [initialData.id] });
+          console.log('response', response);
 
-  // const onDelete = async () => {
-  //   try {
-  //     setLoading(true);
-  //     //   await axios.delete(`/api/${params.storeId}/products/${params.productId}`);
-  //     router.refresh();
-  //     router.push(`/${params.storeId}/products`);
-  //   } catch (error: any) {
-  //   } finally {
-  //     setLoading(false);
-  //     setOpen(false);
-  //   }
-  // };
-
+          if (response.statusCode === 200) {
+            router.replace('/dashboard/category');
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: 'Category deleted successfully'
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        } finally {
+          setOpen(false);
+        }
+      })();
+    });
+  };
   return (
     <>
+      <AlertModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={onConfirm}
+        loading={loading}
+      />
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
         {initialData && (
@@ -120,7 +163,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
             disabled={loading}
             variant="destructive"
             size="sm"
-            // onClick={() => setOpen(true)}
+            onClick={() => setOpen(true)}
           >
             <Trash className="h-4 w-4" />
           </Button>
@@ -153,17 +196,64 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="desc"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Input
                         disabled={loading}
-                        placeholder="Enter your description"
+                        placeholder="Enter category description"
                         {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="isActive"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value === 'true')
+                        }
+                        value={field.value === true ? 'true' : 'false'}
+                        disabled={loading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">Active</SelectItem>
+                          <SelectItem value="false">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="img"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image category</FormLabel>
+                    <FormControl>
+                      <FileUpload
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        acceptedTypes={['image/*']}
                       />
                     </FormControl>
                     <FormMessage />

@@ -25,79 +25,112 @@ import isValidObjectId from '@/helper/isValidObjectId';
 
 const createFormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
-  desc: z.string().min(1, { message: 'Description is required' }),
+  thumb: z
+    .string()
+    .url({ message: 'Thumbnail must be a valid URL' })
+    .optional(),
+  imgs: z
+    .array(z.string().url({ message: 'Image must be a valid URL' }))
+    .optional(),
+  price: z
+    .number()
+    .positive({ message: 'Price must be greater than zero' })
+    .or(
+      z
+        .string()
+        .min(1, { message: 'Price is required' })
+        .refine(
+          (val) => {
+            const num = Number(val);
+            return !isNaN(num) && num > 0;
+          },
+          {
+            message: 'Price must be a valid number greater than zero'
+          }
+        )
+        .transform((val) => Number(val))
+    ),
   SKU: z.string().min(1, { message: 'SKU is required' }),
-  category_id: z
+  description: z.string().min(1, { message: 'Description is required' }),
+  attributes: z
+    .array(
+      z.object({
+        name: z.string().min(1, { message: 'Attribute name is required' }),
+        value: z.string().min(1, { message: 'Attribute value is required' })
+      })
+    )
+    .optional(),
+  category: z
     .string()
     .min(1, { message: 'Category is required' })
     .refine((val) => isValidObjectId(val), {
       message: 'Category is invalid'
     }),
-  quantity: z
+  inventory: z
     .string()
-    .min(1, { message: 'Quantity is required' })
-    .refine(
-      (val) => {
-        const num = Number(val);
-        return !isNaN(num);
-      },
-      {
-        message: 'Quantity must be a valid numbero'
-      }
-    ),
-  discount_id: z.string().optional(),
-  price: z
-    .string()
-    .min(1, { message: 'Price is required' })
-    .refine(
-      (val) => {
-        const num = Number(val);
-        return !isNaN(num) && num > 0;
-      },
-      {
-        message: 'Price must be a valid number greater than zero'
-      }
-    )
+    .min(1, { message: 'Inventory is required' })
+    .refine((val) => isValidObjectId(val), {
+      message: 'Inventory is invalid'
+    }),
+  discount: z.string().optional(),
+  isActive: z.boolean().default(true)
 });
 
 const updateFormSchema = z.object({
   name: z.string().optional(),
-  desc: z.string().optional(),
+  thumb: z
+    .string()
+    .url({ message: 'Thumbnail must be a valid URL' })
+    .optional(),
+  imgs: z
+    .array(z.string().url({ message: 'Image must be a valid URL' }))
+    .optional(),
+  price: z
+    .number()
+    .positive({ message: 'Price must be greater than zero' })
+    .optional()
+    .or(
+      z
+        .string()
+        .optional()
+        .refine(
+          (val) => {
+            if (val) {
+              const num = Number(val);
+              return !isNaN(num) && num > 0;
+            }
+            return true;
+          },
+          {
+            message: 'Price must be a valid number greater than zero'
+          }
+        )
+        .transform((val) => (val ? Number(val) : undefined))
+    ),
   SKU: z.string().optional(),
-  category_id: z
+  description: z.string().optional(),
+  attributes: z
+    .array(
+      z.object({
+        name: z.string().min(1, { message: 'Attribute name is required' }),
+        value: z.string().min(1, { message: 'Attribute value is required' })
+      })
+    )
+    .optional(),
+  category: z
     .string()
     .optional()
-    .refine((val) => val === '' || (val && isValidObjectId(val)), {
+    .refine((val) => !val || val === '' || (val && isValidObjectId(val)), {
       message: 'Category is invalid'
     }),
-  inventory_id: z.string(),
-  quantity: z
+  inventory: z
     .string()
     .optional()
-    .refine(
-      (val) => {
-        if (val) {
-          const num = Number(val);
-          return !isNaN(num);
-        }
-      },
-      {
-        message: 'Quantity must be a valid numbero'
-      }
-    ),
-  discount_id: z.string().optional(),
-  price: z
-    .string()
-    .optional()
-    .refine(
-      (val) => {
-        const num = Number(val);
-        return !isNaN(num) && num > 0;
-      },
-      {
-        message: 'Price must be a valid number greater than zero'
-      }
-    )
+    .refine((val) => !val || val === '' || (val && isValidObjectId(val)), {
+      message: 'Inventory is invalid'
+    }),
+  discount: z.string().optional(),
+  isActive: z.boolean().optional()
 });
 
 type ProductFormValues = z.infer<
@@ -143,47 +176,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
     defaultValues
   });
 
-  const onSubmit = async (data: ProductFormValues) => {
-    try {
-      setLoading(true);
-      const filteredData = Object.fromEntries(
-        Object.entries(data).filter(([_, value]) => value !== '')
-      );
-      if (initialData) {
-        await productApi.updateProduct(initialData._id, filteredData);
-      } else {
-        await productApi.createProduct(filteredData);
-      }
-      router.refresh();
-      router.push(`/dashboard/product`);
-      toast({
-        variant: 'default',
-        title: toastMessage,
-        description: toastMessage
-      });
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // const onDelete = async () => {
-  //   try {
-  //     setLoading(true);
-  //     //   await axios.delete(`/api/${params.storeId}/products/${params.productId}`);
-  //     router.refresh();
-  //     router.push(`/${params.storeId}/products`);
-  //   } catch (error: any) {
-  //   } finally {
-  //     setLoading(false);
-  //     setOpen(false);
-  //   }
-  // };
+  const onSubmit = async (data: ProductFormValues) => {};
 
   const fetchCategorySuggestions = useCallback(async (query: string) => {
     try {

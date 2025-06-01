@@ -4,10 +4,9 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ProductForm } from '@/components/forms/product-form';
 import PageContainer from '@/components/layout/page-container';
 import { useParams } from 'next/navigation';
-import React from 'react';
-import { Product } from '@/types/product';
+import React, { useState } from 'react';
 import Loading from '@/components/ui/loading';
-import isValidObjectId from '@/helper/isValidObjectId';
+import { IProduct } from '@/interfaces/models';
 let breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
   { title: 'Product', link: '/dashboard/product' },
@@ -15,24 +14,9 @@ let breadcrumbItems = [
 ];
 export default function Page() {
   const { productId } = useParams();
-  const [product, setProduct] = React.useState<Product | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  React.useEffect(() => {
-    const fetchProduct = async () => {
-      if (productId !== 'new' && isValidObjectId(productId.toString())) {
-        setLoading(true);
-        breadcrumbItems = [
-          { title: 'Dashboard', link: '/dashboard' },
-          { title: 'Product', link: '/dashboard/product' },
-          { title: 'Edit', link: `/dashboard/product/${productId}` }
-        ];
-        const res = await productApi.getProduct(productId.toString());
-        setProduct(res.response);
-        setLoading(false);
-      }
-    };
-    fetchProduct();
-  }, [productId]);
+  const [product, setProduct] = useState<IProduct | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
   return (
     <PageContainer scrollable={true}>
       {loading ? (
@@ -40,7 +24,7 @@ export default function Page() {
       ) : (
         <div className="space-y-4">
           <Breadcrumbs items={breadcrumbItems} />
-          <ProductForm initialData={product} key={product?._id} />
+          <ProductForm initialData={product} key={product?.id} />
         </div>
       )}
     </PageContainer>

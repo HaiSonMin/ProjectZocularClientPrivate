@@ -1,7 +1,7 @@
 'use server';
 
 import { convertOjbToString } from '@/app/utils';
-import { CONST_APIS } from '@/constants/apis.constant';
+import { CONST_APIS, CONST_APIS_COMMON } from '@/constants/apis.constant';
 import { CONST_METHODS } from '@/constants/methods.constant';
 import { api } from '@/helper';
 import { IActionMultiDto } from '@/interfaces/common/IDTo.interface';

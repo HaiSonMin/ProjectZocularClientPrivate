@@ -8,6 +8,7 @@ export interface IProductAttribute {
 }
 
 export interface IProduct {
+  id: string;
   name: string;
   slug: string;
   thumb: string;

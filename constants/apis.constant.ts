@@ -26,7 +26,8 @@ export const CONST_APIS = {
       ORDER: 'order',
       PAYMENT: 'payment',
       SKIPPING: 'skipping',
-      COMPANY: 'company'
+      COMPANY: 'company',
+      FILES: 'files'
     }
   }
 };
@@ -38,5 +39,6 @@ export const CONST_APIS_COMMON = {
   GET_MULTI_BY_FIELDS: 'get-multi-by-fields',
   GET_MULTI: 'multi',
   UPDATE: 'update',
-  DELETE_MULTI: 'delete-multi'
+  DELETE_MULTI: 'delete-multi',
+  UPLOAD: 'upload'
 };

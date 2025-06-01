@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { toast } from '../ui/use-toast';
@@ -22,7 +22,8 @@ import { CompanyType } from '@/types/company';
 import { Select, SelectContent, SelectItem, SelectValue } from '../ui/select';
 import { SelectTrigger } from '../ui/select';
 import Loading from '../ui/loading';
-import { create, update } from '@/app/apis/models/company.apis';
+import { create, removeMulti, update } from '@/app/apis/models/company.apis';
+import { AlertModal } from '../modal/alert-modal';
 
 const createFormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -72,7 +73,7 @@ interface CompanyFormProps {
 export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
   const router = useRouter();
   const [loading, startTransition] = useTransition();
-
+  const [open, setOpen] = useState(false);
   const title = initialData ? 'Edit company' : 'Create company';
   const description = initialData ? 'Edit a company.' : 'Add a new company';
   const toastMessage = initialData
@@ -103,8 +104,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
             ? await update(initialData.id, data)
             : await create(data);
 
-          console.log('response', response);
-
           if (response.statusCode === 200) {
             if (!initialData) {
               form.reset();
@@ -132,21 +131,47 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
     });
   }
 
-  // const onDelete = async () => {
-  //   try {
-  //     setLoading(true);
-  //     //   await axios.delete(`/api/${params.storeId}/products/${params.productId}`);
-  //     router.refresh();
-  //     router.push(`/${params.storeId}/products`);
-  //   } catch (error: any) {
-  //   } finally {
-  //     setLoading(false);
-  //     setOpen(false);
-  //   }
-  // };
+  const onConfirm = async () => {
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = await removeMulti({ ids: [initialData.id] });
+
+          if (response.statusCode === 200) {
+            router.replace('/dashboard/company');
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: 'User deleted successfully'
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        } finally {
+          setOpen(false);
+        }
+      })();
+    });
+  };
 
   return (
     <>
+      <AlertModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={onConfirm}
+        loading={loading}
+      />
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
         {initialData && (
@@ -154,7 +179,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ initialData }) => {
             disabled={loading}
             variant="destructive"
             size="sm"
-            // onClick={() => setOpen(true)}
+            onClick={() => setOpen(true)}
           >
             <Trash className="h-4 w-4" />
           </Button>
