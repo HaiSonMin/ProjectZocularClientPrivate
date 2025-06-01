@@ -15,27 +15,81 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '../ui/use-toast';
 import Loading from '../ui/loading';
 
-import isValidObjectId from '@/helper/isValidObjectId';
+import { findAll as findAllCategory } from '@/app/apis/models/product-categories.apis';
+import FileUpload from '../file-upload';
+import { findAll as findAllInventory } from '@/app/apis/models/inventory.apis';
+import { findAll as findAllDiscount } from '@/app/apis/models/discount.apis';
+import { Textarea } from '../ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '../ui/select';
+import { create, update } from '@/app/apis/models/product.apis';
 
-const createFormSchema = z.object({
+export const createFormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
+
+  thumb: z.string().url({ message: 'Thumbnail must be a valid URL' }),
+
+  imgs: z
+    .array(z.string().url({ message: 'Each image must be a valid URL' }))
+    .min(1, { message: 'At least one image URL is required' }),
+
+  price: z
+    .string()
+    .min(1, { message: 'Price is required' })
+    .transform((val) => parseFloat(val))
+    .refine((val) => !isNaN(val), { message: 'Price must be a number' })
+    .refine((val) => val > 0, { message: 'Price must be greater than zero' }),
+
+  SKU: z.string().min(1, { message: 'SKU is required' }),
+
+  description: z.string().min(1, { message: 'Description is required' }),
+
+  attributes: z
+    .array(
+      z.object({
+        name: z.string().min(1, { message: 'Attribute name is required' }),
+        value: z.string().min(1, { message: 'Attribute value is required' })
+      })
+    )
+    .min(1, { message: 'At least one attribute is required' }),
+
+  category: z.string().min(1, { message: 'Category is required' }),
+
+  inventory: z.string().min(1, { message: 'Inventory is required' }),
+
+  discount: z.string().min(1, { message: 'Discount is required' }),
+
+  isActive: z.boolean()
+});
+
+export const updateFormSchema = z.object({
+  name: z.string().min(1, { message: 'Name is required' }).optional(),
+
   thumb: z
     .string()
     .url({ message: 'Thumbnail must be a valid URL' })
     .optional(),
+
   imgs: z
-    .array(z.string().url({ message: 'Image must be a valid URL' }))
+    .array(z.string().url({ message: 'Each image must be a valid URL' }))
     .optional(),
+
   price: z
-    .number()
-    .positive({ message: 'Price must be greater than zero' })
-    .or(
+    .union([
+      z
+        .number({ invalid_type_error: 'Price must be a number' })
+        .positive({ message: 'Price must be greater than zero' }),
       z
         .string()
         .min(1, { message: 'Price is required' })
@@ -44,71 +98,19 @@ const createFormSchema = z.object({
             const num = Number(val);
             return !isNaN(num) && num > 0;
           },
-          {
-            message: 'Price must be a valid number greater than zero'
-          }
+          { message: 'Price must be a valid number greater than zero' }
         )
         .transform((val) => Number(val))
-    ),
-  SKU: z.string().min(1, { message: 'SKU is required' }),
-  description: z.string().min(1, { message: 'Description is required' }),
-  attributes: z
-    .array(
-      z.object({
-        name: z.string().min(1, { message: 'Attribute name is required' }),
-        value: z.string().min(1, { message: 'Attribute value is required' })
-      })
-    )
+    ])
     .optional(),
-  category: z
-    .string()
-    .min(1, { message: 'Category is required' })
-    .refine((val) => isValidObjectId(val), {
-      message: 'Category is invalid'
-    }),
-  inventory: z
-    .string()
-    .min(1, { message: 'Inventory is required' })
-    .refine((val) => isValidObjectId(val), {
-      message: 'Inventory is invalid'
-    }),
-  discount: z.string().optional(),
-  isActive: z.boolean().default(true)
-});
 
-const updateFormSchema = z.object({
-  name: z.string().optional(),
-  thumb: z
+  SKU: z.string().min(1, { message: 'SKU is required' }).optional(),
+
+  description: z
     .string()
-    .url({ message: 'Thumbnail must be a valid URL' })
+    .min(1, { message: 'Description is required' })
     .optional(),
-  imgs: z
-    .array(z.string().url({ message: 'Image must be a valid URL' }))
-    .optional(),
-  price: z
-    .number()
-    .positive({ message: 'Price must be greater than zero' })
-    .optional()
-    .or(
-      z
-        .string()
-        .optional()
-        .refine(
-          (val) => {
-            if (val) {
-              const num = Number(val);
-              return !isNaN(num) && num > 0;
-            }
-            return true;
-          },
-          {
-            message: 'Price must be a valid number greater than zero'
-          }
-        )
-        .transform((val) => (val ? Number(val) : undefined))
-    ),
-  SKU: z.string().optional(),
-  description: z.string().optional(),
+
   attributes: z
     .array(
       z.object({
@@ -117,19 +119,13 @@ const updateFormSchema = z.object({
       })
     )
     .optional(),
-  category: z
-    .string()
-    .optional()
-    .refine((val) => !val || val === '' || (val && isValidObjectId(val)), {
-      message: 'Category is invalid'
-    }),
-  inventory: z
-    .string()
-    .optional()
-    .refine((val) => !val || val === '' || (val && isValidObjectId(val)), {
-      message: 'Inventory is invalid'
-    }),
-  discount: z.string().optional(),
+
+  category: z.string().min(1, { message: 'Category is required' }).optional(),
+
+  inventory: z.string().min(1, { message: 'Inventory is required' }).optional(),
+
+  discount: z.string().min(1, { message: 'Discount is required' }).optional(),
+
   isActive: z.boolean().optional()
 });
 
@@ -142,12 +138,14 @@ interface ProductFormProps {
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
-  console.log('initialData', initialData);
   const router = useRouter();
   const { toast } = useToast();
   // const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [categorySuggestions, setCategorySuggestions] = useState<any[]>([]);
+  const [loading, startTransition] = useTransition();
+  const [category, setCategory] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [discount, setDiscount] = useState<any[]>([]);
+
   const title = initialData ? 'Edit product' : 'Create product';
   const description = initialData ? 'Edit a product.' : 'Add a new product';
   const toastMessage = initialData
@@ -163,12 +161,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
     ? initialData
     : {
         name: '',
-        desc: '',
+        price: '',
         SKU: '',
-        category_id: '',
-        quantity: '0',
-        discount_id: '',
-        price: '0'
+        category: '',
+        description: '',
+        inventory: '',
+        discount: '',
+        attributes: [],
+        thumb: '',
+        imgs: [],
+        isActive: true
       };
 
   const form = useForm<ProductFormValues>({
@@ -176,31 +178,73 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
     defaultValues
   });
 
-  const onSubmit = async (data: ProductFormValues) => {};
-
-  const fetchCategorySuggestions = useCallback(async (query: string) => {
+  const fetchCategory = useCallback(async (query: string) => {
     try {
-      // setLoading(true);
-      let res = null;
-      if (query === '') {
-        res = await categoryApi.getCategories();
-      } else {
-        res = await categoryApi.getCategories({ name: query });
-      }
-      const data = res.response.categories;
-      console.log('data', data);
-      setCategorySuggestions(data);
+      const res = await findAllCategory();
+
+      setCategory(res?.metadata?.items ?? []);
     } catch (error) {
       console.error(error);
-      setCategorySuggestions([]);
-    } finally {
-      // setLoading(false);
+      setCategory([]);
     }
   }, []);
 
-  useEffect(() => {
-    console.log('form.getValues()', form.getValues());
-  }, [form.getValues()]);
+  const fetchInventory = useCallback(async (query: string) => {
+    try {
+      const res = await findAllInventory();
+
+      setInventory(res?.metadata?.items ?? []);
+    } catch (error) {
+      console.error(error);
+      setInventory([]);
+    }
+  }, []);
+
+  const fetchDiscount = useCallback(async (query: string) => {
+    try {
+      const res = await findAllDiscount();
+
+      setDiscount(res?.metadata?.items ?? []);
+    } catch (error) {
+      console.error(error);
+      setDiscount([]);
+    }
+  }, []);
+
+  const onSubmit = async (data: ProductFormValues) => {
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = initialData
+            ? await update(initialData.id, data)
+            : await create(data);
+
+          if (response.statusCode === 200) {
+            if (!initialData) {
+              form.reset();
+            }
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: toastMessage
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        }
+      })();
+    });
+  };
 
   return (
     <>
@@ -244,18 +288,102 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="desc"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Price</FormLabel>
                     <FormControl>
                       <Input
+                        type="text"
+                        placeholder="Enter your price"
                         disabled={loading}
-                        placeholder="Enter your description"
                         {...field}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Attributes Field - Thêm mới */}
+              <FormField
+                control={form.control}
+                name="attributes"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-3">
+                    <FormLabel>Product Attributes</FormLabel>
+                    <FormControl>
+                      <div className="space-y-4">
+                        {(field.value || []).map((attribute, index) => (
+                          <div key={index} className="flex items-end gap-4">
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Attribute name (e.g., Color)"
+                                value={attribute.name || ''}
+                                onChange={(e) => {
+                                  const newAttributes = [
+                                    ...(field.value || [])
+                                  ];
+                                  newAttributes[index] = {
+                                    ...newAttributes[index],
+                                    name: e.target.value
+                                  };
+                                  field.onChange(newAttributes);
+                                }}
+                                disabled={loading}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Attribute value (e.g., Red)"
+                                value={attribute.value || ''}
+                                onChange={(e) => {
+                                  const newAttributes = [
+                                    ...(field.value || [])
+                                  ];
+                                  newAttributes[index] = {
+                                    ...newAttributes[index],
+                                    value: e.target.value
+                                  };
+                                  field.onChange(newAttributes);
+                                }}
+                                disabled={loading}
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newAttributes = (
+                                  field.value || []
+                                ).filter((_, i) => i !== index);
+                                field.onChange(newAttributes);
+                              }}
+                              disabled={loading}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newAttributes = [
+                              ...(field.value || []),
+                              { name: '', value: '' }
+                            ];
+                            field.onChange(newAttributes);
+                          }}
+                          disabled={loading}
+                        >
+                          Add Attribute
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -270,7 +398,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
                     <FormControl>
                       <Input
                         type="text"
-                        placeholder="Enter your SKU"
+                        placeholder="Enter your sku"
                         disabled={loading}
                         {...field}
                       />
@@ -279,36 +407,37 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="category_id"
+                name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <FormControl>
                       <InputSearch
                         value={field.value || ''}
-                        suggestions={categorySuggestions}
+                        suggestions={category}
                         placeholder="Enter your category"
                         setReturnValue={field.onChange}
-                        setSuggestions={setCategorySuggestions}
-                        fetchSuggestions={fetchCategorySuggestions}
+                        setSuggestions={setCategory}
+                        fetchSuggestions={fetchCategory}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="quantity"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Inventory Quantity</FormLabel>
+                    <FormLabel>description</FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Enter your inventory"
+                      <Textarea
+                        placeholder="Enter your description"
                         disabled={loading}
                         {...field}
                       />
@@ -317,37 +446,115 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="discount_id"
+                name="inventory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Inventory</FormLabel>
+                    <FormControl>
+                      <InputSearch
+                        value={field.value || ''}
+                        suggestions={inventory}
+                        placeholder="Enter your inventory"
+                        setReturnValue={field.onChange}
+                        setSuggestions={setInventory}
+                        fetchSuggestions={fetchInventory}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="discount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Discount</FormLabel>
                     <FormControl>
-                      <Input
-                        type="string"
+                      <InputSearch
+                        value={field.value || ''}
+                        suggestions={discount}
                         placeholder="Enter your discount"
-                        disabled={loading}
-                        {...field}
+                        setReturnValue={field.onChange}
+                        setSuggestions={setDiscount}
+                        fetchSuggestions={fetchDiscount}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="price"
+                name="thumb"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price</FormLabel>
+                    <FormLabel>Thumbnail product</FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Enter your price"
-                        disabled={loading}
-                        {...field}
+                      <FileUpload
+                        maxFiles={1}
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        acceptedTypes={['image/*']}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="imgs"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Images detail product</FormLabel>
+                    <FormControl>
+                      <FileUpload
+                        maxFiles={10}
+                        value={
+                          Array.isArray(field.value)
+                            ? field.value
+                            : field.value
+                            ? [field.value]
+                            : []
+                        }
+                        onChange={field.onChange}
+                        acceptedTypes={['image/*']}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="isActive"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value === 'true')
+                        }
+                        value={field.value === true ? 'true' : 'false'}
+                        disabled={loading}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">Active</SelectItem>
+                          <SelectItem value="false">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

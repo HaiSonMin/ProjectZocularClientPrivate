@@ -1,7 +1,9 @@
 'use server';
 
-import { CONST_APIS, CONST_APIS_COMMON, CONST_METHODS } from '@/constants';
-import { api } from '@/helpers';
+import { convertOjbToString } from '@/app/utils';
+import { CONST_APIS, CONST_APIS_COMMON } from '@/constants/apis.constant';
+import { CONST_METHODS } from '@/constants/methods.constant';
+import { api } from '@/helper';
 import { IActionMultiDto } from '@/interfaces/common/IDTo.interface';
 import { IQueries } from '@/interfaces/common/IRequest.interface';
 import {
@@ -9,7 +11,6 @@ import {
   IGetManyItem
 } from '@/interfaces/common/IResponse.interface';
 import { IProduct } from '@/interfaces/models';
-import { convertOjbToString } from '@/utils';
 import { revalidateTag } from 'next/cache';
 
 const TAG_NAME = {
@@ -19,7 +20,7 @@ const TAG_NAME = {
 
 export async function create(payload: Partial<IProduct>) {
   const result = await api<IBaseResponse<IProduct>>({
-    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.PRODUCTS}`,
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.PRODUCTS}/${CONST_APIS_COMMON.CREATE}`,
     options: {
       method: CONST_METHODS.POST,
       body: JSON.stringify(payload)

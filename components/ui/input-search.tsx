@@ -56,12 +56,12 @@ export const InputSearch = ({
               key={item.id}
               className="cursor-pointer px-3 py-2 hover:bg-gray-100"
               onClick={() => {
-                setValue(item.name);
-                setReturnValue(item._id);
+                setValue(item.name || item.id);
+                setReturnValue(item.id);
                 setSuggestions([]);
               }}
             >
-              {item.name}
+              {item.name || item.id}
             </li>
           ))}
         </ul>

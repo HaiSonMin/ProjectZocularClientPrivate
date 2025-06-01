@@ -1,7 +1,9 @@
 'use server';
 
-import { CONST_APIS, CONST_APIS_COMMON, CONST_METHODS } from '@/constants';
-import { api } from '@/helpers';
+import { convertOjbToString } from '@/app/utils';
+import { CONST_APIS, CONST_APIS_COMMON } from '@/constants/apis.constant';
+import { CONST_METHODS } from '@/constants/methods.constant';
+import { api } from '@/helper';
 import { IActionMultiDto } from '@/interfaces/common/IDTo.interface';
 import { IQueries } from '@/interfaces/common/IRequest.interface';
 import {
@@ -9,7 +11,6 @@ import {
   IGetManyItem
 } from '@/interfaces/common/IResponse.interface';
 import { IDiscount } from '@/interfaces/models';
-import { convertOjbToString } from '@/utils';
 import { revalidateTag } from 'next/cache';
 
 const TAG_NAME = {
@@ -29,11 +30,11 @@ export async function create(payload: Partial<IDiscount>) {
   return result;
 }
 
-export async function findAll(queries?: IQueries) {
+export async function findAll(queries?: string | IQueries) {
   const result = await api<IBaseResponse<IGetManyItem<IDiscount>>>({
-    url: `${CONST_APIS.SERVER_URL}/${
-      CONST_APIS.FEATURES.COMMON.DISCOUNTS
-    }${convertOjbToString(queries)}`,
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.DISCOUNTS}/${
+      CONST_APIS_COMMON.GET_MULTI
+    }${queries?.length > 0 ? queries : ''}`,
     options: {
       method: CONST_METHODS.GET,
       next: {

@@ -251,6 +251,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
                     <FormLabel>Image category</FormLabel>
                     <FormControl>
                       <FileUpload
+                        maxFiles={1}
                         value={field.value || ''}
                         onChange={field.onChange}
                         acceptedTypes={['image/*']}
