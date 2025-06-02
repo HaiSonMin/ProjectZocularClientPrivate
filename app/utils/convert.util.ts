@@ -12,19 +12,52 @@ const ECompare = {
 };
 
 export const buildQueryString = (queryObject: QueryObject) => {
-  const params: any = [];
+  const params: string[] = [];
 
   if (queryObject.filters && queryObject.filters.length > 0) {
     const filters: any[] = [];
 
+    // Các hàm chuyển đổi đặc biệt
     const specialFieldMappings = {
       isBlocked: (value: string) => (value === 'Active' ? false : true),
       isRootAdmin: (value: string) => value.toLowerCase() === 'yes'
     };
 
     queryObject.filters
-      .filter((item) => item.value && item.value.trim() !== '')
+      .filter((item) => {
+        // Với price, nếu là mảng ["", ""] vẫn giữ lại để xử lý
+        if (item.id === 'price') return true;
+        // Các trường khác chỉ chấp nhận khi value là chuỗi không rỗng
+        return (
+          item.value &&
+          typeof item.value === 'string' &&
+          item.value.trim() !== ''
+        );
+      })
       .forEach((item) => {
+        // 1. Nếu là price và value là mảng [min, max]
+        if (
+          item.id === 'price' &&
+          Array.isArray(item.value) &&
+          item.value.length === 2
+        ) {
+          const [from, to] = item.value as unknown as [string, string];
+          // Nếu ít nhất một đầu có giá trị
+          if ((from && from.trim() !== '') || (to && to.trim() !== '')) {
+            filters.push({
+              f: item.id,
+              o: {
+                r: {
+                  vf: from.trim() !== '' ? Number(from) : null,
+                  vt: to.trim() !== '' ? Number(to) : null
+                }
+              }
+            });
+          }
+          return;
+        }
+
+        // 2. Nếu là field cần mapping đặc biệt (isBlocked, isRootAdmin)
         if (item.id in specialFieldMappings) {
           if (typeof item.value === 'string') {
             const mappedValue = specialFieldMappings[
@@ -32,13 +65,18 @@ export const buildQueryString = (queryObject: QueryObject) => {
             ](item.value);
             filters.push({
               f: item.id,
-              o: { c: { t: ECompare.Equal, v: mappedValue } }
+              o: {
+                c: {
+                  t: ECompare.Equal,
+                  v: mappedValue
+                }
+              }
             });
           }
           return;
         }
 
-        // Ưu tiên IN > RANGE > COMPARE
+        // 3. Nếu item.values là mảng không rỗng → IN
         if (
           item.values &&
           Array.isArray(item.values) &&
@@ -53,7 +91,9 @@ export const buildQueryString = (queryObject: QueryObject) => {
               }
             }
           });
-        } else if (
+        }
+        // 4. Nếu có valueFrom và valueTo → Range
+        else if (
           item.valueFrom !== undefined &&
           item.valueFrom !== null &&
           item.valueTo !== undefined &&
@@ -68,7 +108,13 @@ export const buildQueryString = (queryObject: QueryObject) => {
               }
             }
           });
-        } else if (item.value && item.value.trim() !== '') {
+        }
+        // 5. Trường hợp còn lại: có value là chuỗi → Equal
+        else if (
+          item.value &&
+          typeof item.value === 'string' &&
+          item.value.trim() !== ''
+        ) {
           filters.push({
             f: item.id,
             o: {
@@ -82,11 +128,12 @@ export const buildQueryString = (queryObject: QueryObject) => {
       });
 
     if (filters.length > 0) {
+      // Ở đây chỉ dùng JSON.stringify(filters) mà không encode URI
       params.push(`filters=${JSON.stringify(filters)}`);
     }
   }
 
-  // Xử lý các param khác
+  // Xử lý các trường khác (page, limit, sortBy, ...)
   Object.keys(queryObject).forEach((key) => {
     if (key !== 'filters') {
       params.push(`${key}=${queryObject[key]}`);

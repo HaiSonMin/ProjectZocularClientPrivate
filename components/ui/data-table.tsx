@@ -28,6 +28,7 @@ import { findAll as findAllCompany } from '@/app/apis/models/company.apis';
 import { ECompare } from '@/interfaces/common/IRequest.interface';
 import { buildQueryString } from '@/app/utils';
 import { findAll as findAllCategory } from '@/app/apis/models/product-categories.apis';
+import { findAll as findAllProducts } from '@/app/apis/models/product.apis';
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: 'text' | 'range' | 'select' | 'action';
@@ -152,6 +153,9 @@ export function DataTable<TData, TValue>({
       });
 
       let result;
+
+      console.log('buildQueryString(options)', buildQueryString(options));
+
       switch (tableType) {
         case 'user':
           result = await findAllUser(buildQueryString(options));
@@ -191,8 +195,14 @@ export function DataTable<TData, TValue>({
           }
           break;
         case 'product':
-          result = await productApi.getProducts(options);
-          setData(result.response.products);
+          result = await findAllProducts(buildQueryString(options));
+          console.log('result', result);
+
+          if (result.metadata && result.metadata.items) {
+            setData(result.metadata.items as TData[]);
+          } else {
+            setData([]);
+          }
           break;
         case 'order':
           result = await orderApi.getOrders(options);

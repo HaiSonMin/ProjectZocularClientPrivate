@@ -1,11 +1,10 @@
-'use client';
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
-import { Product } from '@/types/product';
+import { IProduct } from '@/interfaces/models';
 
-export const columns: ColumnDef<Product>[] = [
+export const columns: ColumnDef<IProduct>[] = [
   {
-    accessorKey: '_id',
+    accessorKey: 'id',
     header: 'PRODUCT ID'
   },
   {
@@ -13,7 +12,7 @@ export const columns: ColumnDef<Product>[] = [
     header: 'NAME'
   },
   {
-    accessorKey: 'desc',
+    accessorKey: 'description',
     header: 'DESCRIPTION'
   },
   {
@@ -28,20 +27,13 @@ export const columns: ColumnDef<Product>[] = [
     }
   },
   {
-    accessorKey: 'categoryDetail.name',
+    accessorKey: 'category.name',
     header: 'CATEGORY'
   },
   {
-    accessorKey: 'inventoryDetail.quantity',
-    header: 'INVENTORY',
-    meta: {
-      filterVariant: 'range'
-    }
+    accessorKey: 'inventory.quantity',
+    header: 'INVENTORY'
   },
-  // {
-  //   accessorKey: 'discount_id',
-  //   header: 'DISCOUNT'
-  // },
   {
     accessorKey: 'actions',
     header: 'ACTIONS',

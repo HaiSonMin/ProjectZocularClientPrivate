@@ -30,11 +30,11 @@ export async function create(payload: Partial<IProduct>) {
   return result;
 }
 
-export async function findAll(queries?: IQueries) {
+export async function findAll(queries?: string | IQueries) {
   const result = await api<IBaseResponse<IGetManyItem<IProduct>>>({
-    url: `${CONST_APIS.SERVER_URL}/${
-      CONST_APIS.FEATURES.COMMON.PRODUCTS
-    }${convertOjbToString(queries)}`,
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.PRODUCTS}/${
+      CONST_APIS_COMMON.GET_MULTI
+    }${queries?.length > 0 ? queries : ''}`,
     options: {
       method: CONST_METHODS.GET,
       next: {
@@ -87,6 +87,9 @@ export async function findOneDetailById(id: string) {
 }
 
 export async function update(id: string, payload: Partial<IProduct>) {
+  console.log('payload', payload);
+  console.log('id', id);
+
   const result = await api<IBaseResponse<IProduct>>({
     url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.PRODUCTS}/${id}`,
     options: {

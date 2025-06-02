@@ -11,10 +11,10 @@ import {
 import { Copy, Edit, MoreHorizontal, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Product } from '@/types/product';
+import { IProduct } from '@/interfaces/models';
 
 interface CellActionProps {
-  data: Product;
+  data: IProduct;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
@@ -43,13 +43,13 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
           <DropdownMenuItem
-            onClick={() => router.push(`/dashboard/product/${data._id}`)}
+            onClick={() => router.push(`/dashboard/product/${data.id}`)}
           >
             <Edit className="mr-2 h-4 w-4" /> Update
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              navigator.clipboard.writeText(data._id);
+              navigator.clipboard.writeText(data.id);
             }}
           >
             <Copy className="mr-2 h-4 w-4" /> Copy ID

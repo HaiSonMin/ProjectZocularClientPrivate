@@ -33,7 +33,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select';
-import { create, update } from '@/app/apis/models/product.apis';
+import { create, removeMulti, update } from '@/app/apis/models/product.apis';
+import { AlertModal } from '../modal/alert-modal';
 
 export const createFormSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
@@ -140,7 +141,7 @@ interface ProductFormProps {
 export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
   const router = useRouter();
   const { toast } = useToast();
-  // const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [loading, startTransition] = useTransition();
   const [category, setCategory] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
@@ -152,11 +153,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
     ? 'Product updated successfully.'
     : 'Product created successfully.';
   const action = initialData ? 'Save changes' : 'Create';
-  if (initialData) {
-    initialData.category_id = initialData.categoryDetail.name || '';
-    initialData.quantity =
-      initialData.inventoryDetail.quantity.toString() || '0';
-  }
+
   const defaultValues = initialData
     ? initialData
     : {
@@ -212,12 +209,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
   }, []);
 
   const onSubmit = async (data: ProductFormValues) => {
+    debugger;
+
     startTransition(() => {
       (async () => {
         try {
           const response = initialData
             ? await update(initialData.id, data)
             : await create(data);
+
+          console.log('response', response);
 
           if (response.statusCode === 200) {
             if (!initialData) {
@@ -246,8 +247,47 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
     });
   };
 
+  const onConfirm = async () => {
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = await removeMulti({ ids: [initialData.id] });
+
+          if (response.statusCode === 200) {
+            router.replace('/dashboard/product');
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: 'User deleted successfully'
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        } finally {
+          setOpen(false);
+        }
+      })();
+    });
+  };
+
   return (
     <>
+      <AlertModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={onConfirm}
+        loading={loading}
+      />
       <div className="flex items-center justify-between">
         <Heading title={title} description={description} />
         {initialData && (
@@ -255,7 +295,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
             disabled={loading}
             variant="destructive"
             size="sm"
-            // onClick={() => setOpen(true)}
+            onClick={() => setOpen(true)}
           >
             <Trash className="h-4 w-4" />
           </Button>
