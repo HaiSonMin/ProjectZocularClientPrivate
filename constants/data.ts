@@ -133,19 +133,7 @@ export const navItems: NavItem[] = [
     title: 'Address',
     href: '/dashboard/address',
     icon: 'address',
-    label: 'address',
-    subItems: [
-      {
-        title: 'User Address',
-        href: '/dashboard/address/user',
-        label: 'User Address'
-      },
-      {
-        title: 'Company Address',
-        href: '/dashboard/address/company',
-        label: 'Company Address'
-      }
-    ]
+    label: 'address'
   },
   {
     title: 'Category',

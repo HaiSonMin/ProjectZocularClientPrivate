@@ -209,16 +209,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
   }, []);
 
   const onSubmit = async (data: ProductFormValues) => {
-    debugger;
-
     startTransition(() => {
       (async () => {
         try {
           const response = initialData
             ? await update(initialData.id, data)
             : await create(data);
-
-          console.log('response', response);
 
           if (response.statusCode === 200) {
             if (!initialData) {

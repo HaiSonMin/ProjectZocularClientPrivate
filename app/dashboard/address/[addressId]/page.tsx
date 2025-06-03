@@ -1,33 +1,34 @@
 'use client';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { ProductForm } from '@/components/forms/product-form';
 import PageContainer from '@/components/layout/page-container';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Loading from '@/components/ui/loading';
-import { IProduct } from '@/interfaces/models';
+import { IAddress } from '@/interfaces/models';
+import { AddressForm } from '@/components/forms/address-form';
+import { findOneById } from '@/app/apis/models/address.apis';
 import { toast } from '@/components/ui/use-toast';
-import { findOneDetailById } from '@/app/apis/models/product.apis';
 let breadcrumbItems = [
   { title: 'Dashboard', link: '/dashboard' },
-  { title: 'Product', link: '/dashboard/product' },
-  { title: 'Create', link: '/dashboard/product/create' }
+  { title: 'Address', link: '/dashboard/address' },
+  { title: 'Create', link: '/dashboard/address/create' }
 ];
 export default function Page() {
-  const { productId } = useParams();
-  const [product, setProduct] = useState<IProduct | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { addressId } = useParams();
+  const [address, setAddress] = React.useState<IAddress | null>(null);
+
+  const [loading, setLoading] = React.useState<boolean>(false);
   const router = useRouter();
 
   const fetchData = async () => {
     try {
-      const response = await findOneDetailById(productId as string);
+      const response = await findOneById(addressId as string);
 
       if (!response.metadata) {
-        router.replace('/dashboard/product');
+        router.replace('/dashboard/address');
       }
-      setProduct(response?.metadata ?? null);
+      setAddress(response?.metadata ?? null);
     } catch (err) {
       toast({
         title: 'error',
@@ -40,11 +41,11 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (productId && productId !== 'new') {
+    if (addressId && addressId !== 'new') {
       setLoading(true);
       fetchData();
     }
-  }, [productId]);
+  }, [addressId]);
 
   return (
     <PageContainer scrollable={true}>
@@ -53,7 +54,7 @@ export default function Page() {
       ) : (
         <div className="space-y-4">
           <Breadcrumbs items={breadcrumbItems} />
-          <ProductForm initialData={product} key={product?.id} />
+          <AddressForm initialData={address} key={address?.id} />
         </div>
       )}
     </PageContainer>

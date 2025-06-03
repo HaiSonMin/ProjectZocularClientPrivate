@@ -8,13 +8,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Address, AddressType } from '@/types/address';
+import { IAddress } from '@/interfaces/models';
 import { Copy, Edit, MoreHorizontal, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface CellActionProps {
-  data: Address;
+  data: IAddress;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
@@ -44,18 +44,14 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
           <DropdownMenuItem
             onClick={() => {
-              if (data.type === AddressType.CUSTOMER) {
-                router.push(`/dashboard/address/user/${data._id}`);
-              } else {
-                router.push(`/dashboard/address/company/${data._id}`);
-              }
+              router.push(`/dashboard/address/${data.id}`);
             }}
           >
             <Edit className="mr-2 h-4 w-4" /> Update
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              navigator.clipboard.writeText(data._id);
+              navigator.clipboard.writeText(data.id);
             }}
           >
             <Copy className="mr-2 h-4 w-4" /> Copy ID

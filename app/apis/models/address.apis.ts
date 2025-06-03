@@ -20,7 +20,7 @@ const TAG_NAME = {
 
 export async function create(payload: Partial<IAddress>) {
   const result = await api<IBaseResponse<IAddress>>({
-    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.ADDRESS}`,
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.ADDRESS}/${CONST_APIS_COMMON.CREATE}`,
     options: {
       method: CONST_METHODS.POST,
       body: JSON.stringify(payload)
@@ -30,11 +30,11 @@ export async function create(payload: Partial<IAddress>) {
   return result;
 }
 
-export async function findAll(queries?: IQueries) {
+export async function findAll(queries?: string | IQueries) {
   const result = await api<IBaseResponse<IGetManyItem<IAddress>>>({
-    url: `${CONST_APIS.SERVER_URL}/${
-      CONST_APIS.FEATURES.COMMON.ADDRESS
-    }${convertOjbToString(queries)}`,
+    url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.ADDRESS}/${
+      CONST_APIS_COMMON.GET_MULTI
+    }${queries?.length > 0 ? queries : ''}`,
     options: {
       method: CONST_METHODS.GET,
       next: {

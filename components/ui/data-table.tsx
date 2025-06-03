@@ -29,6 +29,7 @@ import { ECompare } from '@/interfaces/common/IRequest.interface';
 import { buildQueryString } from '@/app/utils';
 import { findAll as findAllCategory } from '@/app/apis/models/product-categories.apis';
 import { findAll as findAllProducts } from '@/app/apis/models/product.apis';
+import { findAll as findAllAddress } from '@/app/apis/models/address.apis';
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: 'text' | 'range' | 'select' | 'action';
@@ -154,8 +155,6 @@ export function DataTable<TData, TValue>({
 
       let result;
 
-      console.log('buildQueryString(options)', buildQueryString(options));
-
       switch (tableType) {
         case 'user':
           result = await findAllUser(buildQueryString(options));
@@ -175,17 +174,14 @@ export function DataTable<TData, TValue>({
           }
           break;
         case 'address':
-          result = await addressApi.getAddresses(options);
-          setData(result.response.addresses);
+          result = await findAllAddress(buildQueryString(options));
+          if (result.metadata && result.metadata.items) {
+            setData(result.metadata.items as TData[]);
+          } else {
+            setData([]);
+          }
           break;
-        case 'userAddress':
-          result = await addressApi.getUserAddresses(options);
-          setData(result.response.addresses);
-          break;
-        case 'companyAddress':
-          result = await addressApi.getCompanyAddresses(options);
-          setData(result.response.addresses);
-          break;
+
         case 'category':
           result = await findAllCategory(buildQueryString(options));
           if (result.metadata && result.metadata.items) {
@@ -196,7 +192,6 @@ export function DataTable<TData, TValue>({
           break;
         case 'product':
           result = await findAllProducts(buildQueryString(options));
-          console.log('result', result);
 
           if (result.metadata && result.metadata.items) {
             setData(result.metadata.items as TData[]);

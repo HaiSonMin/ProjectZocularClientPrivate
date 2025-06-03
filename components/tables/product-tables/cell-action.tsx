@@ -10,19 +10,52 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Copy, Edit, MoreHorizontal, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { IProduct } from '@/interfaces/models';
+import { removeMulti } from '@/app/apis/models/product.apis';
+import { toast } from '@/components/ui/use-toast';
 
 interface CellActionProps {
   data: IProduct;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const [loading, startTransition] = useTransition();
 
-  const onConfirm = async () => {};
+  const onConfirm = async () => {
+    startTransition(() => {
+      (async () => {
+        try {
+          const response = await removeMulti({ ids: [data.id] });
+
+          if (response.statusCode === 200) {
+            router.replace('/dashboard/product');
+            toast({
+              title: 'success',
+              variant: 'destructive',
+              description: 'User deleted successfully'
+            });
+          } else {
+            toast({
+              title: 'warning',
+              variant: 'destructive',
+              description: response?.message
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: 'error',
+            variant: 'destructive',
+            description: 'An error occurred, please try again.'
+          });
+        } finally {
+          setOpen(false);
+        }
+      })();
+    });
+  };
 
   return (
     <>

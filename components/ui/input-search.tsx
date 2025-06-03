@@ -20,7 +20,13 @@ export const InputSearch = ({
   setReturnValue,
   fetchSuggestions
 }: InputSearchProps) => {
-  const [value, setValue] = useState(initValue);
+  const [value, setValue] = useState<string>(() => {
+    if (!initValue) return '';
+    return (
+      initValue.name ??
+      (initValue.quantity !== undefined ? String(initValue.quantity) : '')
+    );
+  });
   const [isFocused, setIsFocused] = useState(false);
   useEffect(() => {
     setReturnValue('');
@@ -56,12 +62,12 @@ export const InputSearch = ({
               key={item.id}
               className="cursor-pointer px-3 py-2 hover:bg-gray-100"
               onClick={() => {
-                setValue(item.name || item.id);
+                setValue(item.name || item.quantity);
                 setReturnValue(item.id);
                 setSuggestions([]);
               }}
             >
-              {item.name || item.id}
+              {item.name || item.quantity}
             </li>
           ))}
         </ul>
