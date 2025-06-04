@@ -120,7 +120,6 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData }) => {
       (async () => {
         try {
           const response = await removeMulti({ ids: [initialData.id] });
-          console.log('response', response);
 
           if (response.statusCode === 200) {
             router.replace('/dashboard/category');

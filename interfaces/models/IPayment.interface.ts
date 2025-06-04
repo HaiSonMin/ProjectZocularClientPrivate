@@ -1,6 +1,6 @@
-import { EPaymentMethod } from 'enums/models/EPaymentMethod.enum';
+import { EPaymentMethod } from '@/enums/models/EPaymentMethod.enum';
 import { IOrder } from './IOrder.interface';
-import { EPaymentStatus } from 'enums/models/EPaymentStatus.enum';
+import { EPaymentStatus } from '@/enums/models/EPaymentStatus.enum';
 
 export interface IPayment {
   amount: number; // Số tiền thanh toán

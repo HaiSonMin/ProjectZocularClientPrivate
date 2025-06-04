@@ -20,31 +20,31 @@ export default function Page() {
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const fetchData = async () => {
-    try {
-      const response = await findOneDetailById(productId as string);
-
-      if (!response.metadata) {
-        router.replace('/dashboard/product');
-      }
-      setProduct(response?.metadata ?? null);
-    } catch (err) {
-      toast({
-        title: 'error',
-        variant: 'destructive',
-        description: 'Có lỗi xảy ra, vui lòng thử lại'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await findOneDetailById(productId as string);
+
+        if (!response.metadata) {
+          router.replace('/dashboard/product');
+        }
+        setProduct(response?.metadata ?? null);
+      } catch (err) {
+        toast({
+          title: 'error',
+          variant: 'destructive',
+          description: 'Có lỗi xảy ra, vui lòng thử lại'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (productId && productId !== 'new') {
       setLoading(true);
       fetchData();
     }
-  }, [productId]);
+  }, [productId, router]);
 
   return (
     <PageContainer scrollable={true}>

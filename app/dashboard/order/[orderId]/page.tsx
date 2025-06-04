@@ -3,7 +3,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { UserForm } from '@/components/forms/user-form';
 import PageContainer from '@/components/layout/page-container';
-import { useParams } from 'next/navigation';
 import React from 'react';
 import Loading from '@/components/ui/loading';
 import { IUser } from '@/interfaces/models';
@@ -14,10 +13,8 @@ let breadcrumbItems = [
   { title: 'Create', link: '/dashboard/user/create' }
 ];
 export default function Page() {
-  const { userId } = useParams();
-  const [user, setUser] = React.useState<IUser | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(false);
-
+  let user: IUser | null = null;
+  let loading = true;
   return (
     <PageContainer scrollable={true}>
       {loading ? (
@@ -25,7 +22,7 @@ export default function Page() {
       ) : (
         <div className="space-y-4">
           <Breadcrumbs items={breadcrumbItems} />
-          <UserForm initialData={user} key={user?._id} />
+          <UserForm initialData={user} />
         </div>
       )}
     </PageContainer>

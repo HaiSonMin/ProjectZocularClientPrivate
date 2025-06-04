@@ -3,13 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { DebouncedInput } from './debounce-input';
 
+interface SuggestionItem {
+  id: string | number;
+  name?: string;
+  quantity?: number;
+}
+
 interface InputSearchProps {
   placeholder?: string;
-  suggestions: any[];
-  setSuggestions: (suggestions: any[]) => void;
-  setReturnValue: (value: any) => void;
+  suggestions: SuggestionItem[];
+  setSuggestions: (suggestions: SuggestionItem[]) => void;
+  setReturnValue: (value: string | number) => void;
   fetchSuggestions: (value: string) => void;
-  value: string;
+  value: string | SuggestionItem;
 }
 
 export const InputSearch = ({
@@ -22,15 +28,15 @@ export const InputSearch = ({
 }: InputSearchProps) => {
   const [value, setValue] = useState<string>(() => {
     if (!initValue) return '';
-    return (
-      initValue.name ??
-      (initValue.quantity !== undefined ? String(initValue.quantity) : '')
-    );
+    return typeof initValue === 'object' && initValue !== null
+      ? initValue.name ??
+          (initValue.quantity !== undefined ? String(initValue.quantity) : '')
+      : String(initValue);
   });
   const [isFocused, setIsFocused] = useState(false);
   useEffect(() => {
     setReturnValue('');
-  }, []);
+  }, [setReturnValue]);
 
   useEffect(() => {
     if (isFocused) {
@@ -62,7 +68,13 @@ export const InputSearch = ({
               key={item.id}
               className="cursor-pointer px-3 py-2 hover:bg-gray-100"
               onClick={() => {
-                setValue(item.name || item.quantity);
+                setValue(
+                  item.name !== undefined
+                    ? String(item.name)
+                    : item.quantity !== undefined
+                    ? String(item.quantity)
+                    : ''
+                );
                 setReturnValue(item.id);
                 setSuggestions([]);
               }}

@@ -181,7 +181,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
 
       setCategory(res?.metadata?.items ?? []);
     } catch (error) {
-      console.error(error);
       setCategory([]);
     }
   }, []);
@@ -192,7 +191,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
 
       setInventory(res?.metadata?.items ?? []);
     } catch (error) {
-      console.error(error);
       setInventory([]);
     }
   }, []);
@@ -203,7 +201,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData }) => {
 
       setDiscount(res?.metadata?.items ?? []);
     } catch (error) {
-      console.error(error);
       setDiscount([]);
     }
   }, []);

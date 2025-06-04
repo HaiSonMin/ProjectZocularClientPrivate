@@ -2,6 +2,7 @@ import { EGender } from '@/enums/models/EGender.enum';
 import { BoInterfaceModelsCommon } from 'bodevops-be-common/dist';
 
 export interface IUser extends BoInterfaceModelsCommon.IBaseModel {
+  id: string;
   avatar?: string; // Tùy chọn (Optional)
   firstName: string;
   lastName: string;

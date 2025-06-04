@@ -18,7 +18,7 @@ interface CellActionProps {
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
-  const [loading, setLoading] = useState(false);
+  let loading = false;
   const [open, setOpen] = useState(false);
   const router = useRouter();
 

@@ -1,4 +1,4 @@
-import { EShippingStatus } from 'enums/models/EShippingStatus.enum';
+import { EShippingStatus } from '@/enums/models/EShippingStatus.enum';
 import { IAddress } from './IAddress.interface';
 import { IOrder } from './IOrder.interface';
 

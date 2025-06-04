@@ -1,9 +1,9 @@
-import { User } from '@/interfaces/models/IUser.interface';
+import { IUser } from '@/interfaces/models';
 import { create } from 'zustand';
 
 interface AuthState {
-  user: User | null;
-  setUser: (user: User | null) => void;
+  user: IUser | null;
+  setUser: (user: IUser | null) => void;
   logout: () => void;
   isLoginPromptOpen: boolean;
   openLoginPrompt: () => void;

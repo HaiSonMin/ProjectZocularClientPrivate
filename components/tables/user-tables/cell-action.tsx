@@ -8,17 +8,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { User } from '@/types/user';
+import { IUser } from '@/interfaces/models';
 import { Copy, Edit, MoreHorizontal, Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface CellActionProps {
-  data: User;
+  data: IUser;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
-  const [loading, setLoading] = useState(false);
+  let loading = false;
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
@@ -49,7 +49,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
-              navigator.clipboard.writeText(data._id);
+              navigator.clipboard.writeText(data.id);
             }}
           >
             <Copy className="mr-2 h-4 w-4" /> Copy ID

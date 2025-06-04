@@ -31,6 +31,7 @@ import { findAll as findAllCategory } from '@/app/apis/models/product-categories
 import { findAll as findAllProducts } from '@/app/apis/models/product.apis';
 import { findAll as findAllAddress } from '@/app/apis/models/address.apis';
 declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: 'text' | 'range' | 'select' | 'action';
     options?: string[]; // For select
@@ -199,13 +200,17 @@ export function DataTable<TData, TValue>({
             setData([]);
           }
           break;
-        case 'order':
-          result = await orderApi.getOrders(options);
-          setData(result.response.orders);
-          break;
+        // case 'order':
+        //   result = await  findAll(options);
+        //   if (result.metadata && result.metadata.items) {
+        //     setData(result.metadata.items as TData[]);
+        //   } else {
+        //     setData([]);
+        //   }
+        //   break;
       }
       if (result) {
-        const totalItems = result.metadata.totalItems;
+        const totalItems = result.metadata?.totalItems ?? 0;
         setTotalPages(Math.ceil(totalItems / pagination.pageSize));
       }
       // setLoading(false);

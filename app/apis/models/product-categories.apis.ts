@@ -97,11 +97,6 @@ export async function update(id: string, payload: Partial<IProductsCategory>) {
 }
 
 export async function removeMulti(payload: IActionMultiDto) {
-  console.log('payload', payload);
-  console.log(
-    `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.PRODUCT_CATEGORIES}/${CONST_APIS_COMMON.DELETE_MULTI}`
-  );
-
   const result = await api<IBaseResponse<IProductsCategory>>({
     url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.PRODUCT_CATEGORIES}/${CONST_APIS_COMMON.DELETE_MULTI}`,
     options: {

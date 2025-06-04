@@ -3,7 +3,7 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Loading from '@/components/ui/loading';
 import { IAddress } from '@/interfaces/models';
 import { AddressForm } from '@/components/forms/address-form';
@@ -16,12 +16,12 @@ let breadcrumbItems = [
 ];
 export default function Page() {
   const { addressId } = useParams();
-  const [address, setAddress] = React.useState<IAddress | null>(null);
+  const [address, setAddress] = useState<IAddress | null>(null);
 
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await findOneById(addressId as string);
 
@@ -38,14 +38,14 @@ export default function Page() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addressId, router]);
 
   useEffect(() => {
     if (addressId && addressId !== 'new') {
       setLoading(true);
       fetchData();
     }
-  }, [addressId]);
+  }, [addressId, setLoading, fetchData]);
 
   return (
     <PageContainer scrollable={true}>

@@ -3,7 +3,7 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import PageContainer from '@/components/layout/page-container';
 import { OrderClient } from '@/components/tables/order-tables/client';
-import React from 'react';
+import React, { useState } from 'react';
 import { Order } from '@/types/order';
 import Loading from '@/components/ui/loading';
 
@@ -12,14 +12,10 @@ const breadcrumbItems = [
   { title: 'Order', link: '/dashboard/order' }
 ];
 export default function Page() {
-  const [orders, setOrders] = React.useState<Order[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const [pagination, setPagination] = React.useState<any>({
-    total: 0,
-    total_pages: 0,
-    current_page: 1
-  });
+  const [orders, setOrders] = useState<Order[]>([]);
 
+  let pagination = { total: 0, total_pages: 0, current_page: 1 };
+  let loading = true;
   return (
     <PageContainer>
       <div className="space-y-2">

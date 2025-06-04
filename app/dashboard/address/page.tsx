@@ -10,7 +10,6 @@ const breadcrumbItems = [
 ];
 export default async function Page() {
   const { metadata } = await findAll();
-  console.log('metadata', metadata);
 
   return (
     <PageContainer>

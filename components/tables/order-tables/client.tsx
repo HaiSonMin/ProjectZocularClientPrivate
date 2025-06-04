@@ -23,9 +23,6 @@ export const OrderClient: React.FC<ProductsClientProps> = ({
   const router = useRouter();
   const [loading, setLoading] = React.useState<boolean>(false);
   const refreshData = async () => {
-    setLoading(true);
-    const { response } = await orderApi.getOrders();
-    setData(response.orders);
     setLoading(false);
   };
 

@@ -15,4 +15,3 @@ export * from './IProductsCategories.interface';
 export * from './IShipping.interface';
 export * from './IToken.interface';
 export * from './IUser.interface';
-export * from './IWebStore.interface';

@@ -15,7 +15,7 @@ import {
   Trash2
 } from 'lucide-react';
 import Image from 'next/image';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { toast } from './ui/use-toast';
 
 // Generic type to handle dynamic typing
@@ -71,8 +71,7 @@ const FileUpload: React.FC<FileUploadProps> = (props) => {
     return File;
   };
 
-  // Helper function to convert value to array
-  const getValueAsArray = (): string[] => {
+  const getValueAsArray = useCallback((): string[] => {
     if (isSingleMode) {
       const singleValue = (props as FileUploadSingleProps).value;
       return singleValue ? [singleValue] : [];
@@ -80,7 +79,7 @@ const FileUpload: React.FC<FileUploadProps> = (props) => {
       const multiValue = (props as FileUploadMultipleProps).value;
       return multiValue || [];
     }
-  };
+  }, [isSingleMode, props]);
 
   // Helper function to call onChange with correct type
   const callOnChange = (urls: string[]) => {
@@ -116,7 +115,7 @@ const FileUpload: React.FC<FileUploadProps> = (props) => {
       );
       setUploadedFiles(mockFiles);
     }
-  }, [props.value, uploadedFiles.length, isSingleMode]);
+  }, [props.value, uploadedFiles.length, isSingleMode, getValueAsArray]);
 
   // Validate file before upload
   const validateFile = (file: File): string | null => {
@@ -213,7 +212,6 @@ const FileUpload: React.FC<FileUploadProps> = (props) => {
         });
       }
     } catch (error) {
-      console.error('Upload error:', error);
       setError('File upload failed. Please try again.');
     } finally {
       setUploading(false);
@@ -245,7 +243,6 @@ const FileUpload: React.FC<FileUploadProps> = (props) => {
         description: 'File deleted successfully'
       });
     } catch (error) {
-      console.error('Error deleting file:', error);
       setError('File deletion failed. Please try again.');
     }
   };
@@ -271,7 +268,6 @@ const FileUpload: React.FC<FileUploadProps> = (props) => {
         description: 'All files deleted successfully'
       });
     } catch (error) {
-      console.error('Error deleting files:', error);
       setError('File deletion failed. Please try again.');
     }
   };
@@ -371,9 +367,6 @@ const FileUpload: React.FC<FileUploadProps> = (props) => {
                         width={isSingleMode ? 112 : 80}
                         height={isSingleMode ? 112 : 80}
                         className="h-full w-full object-cover"
-                        onError={() => {
-                          console.error('Cannot load image:', file.url);
-                        }}
                       />
                     </div>
                   ) : (

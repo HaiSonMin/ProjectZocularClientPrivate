@@ -87,9 +87,6 @@ export async function findOneDetailById(id: string) {
 }
 
 export async function update(id: string, payload: Partial<IProduct>) {
-  console.log('payload', payload);
-  console.log('id', id);
-
   const result = await api<IBaseResponse<IProduct>>({
     url: `${CONST_APIS.SERVER_URL}/${CONST_APIS.FEATURES.COMMON.PRODUCTS}/${id}`,
     options: {

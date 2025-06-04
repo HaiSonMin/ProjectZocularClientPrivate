@@ -20,31 +20,31 @@ export default function Page() {
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const fetchData = async () => {
-    try {
-      const response = await findOneById(categoryId as string);
-
-      if (!response.metadata) {
-        router.replace('/dashboard/category');
-      }
-      setCategory(response?.metadata ?? null);
-    } catch (err) {
-      toast({
-        title: 'error',
-        variant: 'destructive',
-        description: 'Có lỗi xảy ra, vui lòng thử lại'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await findOneById(categoryId as string);
+
+        if (!response.metadata) {
+          router.replace('/dashboard/category');
+        }
+        setCategory(response?.metadata ?? null);
+      } catch (err) {
+        toast({
+          title: 'error',
+          variant: 'destructive',
+          description: 'Có lỗi xảy ra, vui lòng thử lại'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (categoryId && categoryId !== 'new') {
       setLoading(true);
       fetchData();
     }
-  }, [categoryId]);
+  }, [categoryId, router]);
   return (
     <PageContainer scrollable={true}>
       {loading ? (
